@@ -29,7 +29,7 @@ jobs:
     - name: Run Phrase and Style Lint (Vale)
       uses: errata-ai/vale-action@v2
       with:
-        files: '**/*.md'
+        files: '.'
         config: '.github/config/.vale.ini'
         styles: '.github/styles'
       env:
