@@ -16,7 +16,7 @@ jobs:
     - name: Run Markdown Syntax Lint
       uses: DavidAnson/github-workflow-markdownlint@v1
       with:
-        config: '.markdownlint.json'
+        config: '.github/config/.markdownlint.json'
 
   # STAGE 2: Phrase & Style Validation
   check-style:
@@ -29,5 +29,7 @@ jobs:
       uses: errata-ai/vale-action@v2
       with:
         files: '**/*.md'
+        config: '.github/config/.vale.ini'
+        styles: '.github/styles'
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
