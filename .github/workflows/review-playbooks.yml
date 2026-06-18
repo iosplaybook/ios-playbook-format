@@ -8,34 +8,52 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out repository
+      - name: Prepare the submitted materials for review
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Set up Node.js
+      - name: Prepare the review tool
         uses: actions/setup-node@v4
         with:
           node-version: 24
 
-      - name: Collect changed playbooks
+      - name: Identify the playbooks changed in this proposal
         id: changed
         shell: bash
         run: |
+          echo "This review is now checking which playbook documents were changed in this pull request."
+          echo "Only Markdown files inside the 'playbooks/' folder are included in this policy review."
+          echo "The review compares this proposal against the base branch so the public can see exactly what documents are under assessment."
+
           git fetch origin "${{ github.base_ref }}" --depth=1
           files="$(git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" | grep '^playbooks/.*\.md$' || true)"
+
+          if [ -z "$files" ]; then
+            echo "Result: no playbook Markdown files were changed in the 'playbooks/' folder."
+            echo "This means there are no playbook documents that need validation in this review run."
+          else
+            echo "Result: the following playbook documents will be reviewed for completeness and formatting:"
+            printf '%s\n' "$files"
+          fi
+
           {
             echo 'files<<EOF'
             echo "$files"
             echo 'EOF'
           } >> "$GITHUB_OUTPUT"
 
-      - name: Validate changed playbooks
+      - name: Review the changed playbooks for required structure and clarity
         shell: bash
         run: |
+          echo "The review is now examining each changed playbook document."
+          echo "This check looks for missing required sections, broken internal references, formatting problems, and template text that was not replaced."
+          echo "The purpose is to help keep these documents consistent, understandable, and ready for public review."
+
           if [ -z "${{ steps.changed.outputs.files }}" ]; then
-            echo "No changed playbook markdown files found under playbooks/."
+            echo "No changed playbook Markdown files were found under 'playbooks/', so there is nothing further to review in this workflow."
             exit 0
           fi
 
+          echo "The detailed validator output begins below."
           printf '%s\n' "${{ steps.changed.outputs.files }}" | node scripts/validate-playbooks.mjs --stdin

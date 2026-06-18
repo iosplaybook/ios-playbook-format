@@ -4,41 +4,78 @@ import path from "node:path";
 const args = process.argv.slice(2);
 const useStdin = args.includes("--stdin");
 
+// Main review flow:
+// 1. Gather the list of playbook files to examine.
+// 2. Apply both general quality checks and type-specific structure checks.
+// 3. Publish GitHub notices for passes and GitHub errors for failures.
+//
+// This script currently has two review outcomes:
+// - Pass: reported as a GitHub notice and a console "PASS" line.
+// - Fail: reported as a GitHub error and a console "FAIL" line.
+//
+// There is no separate warning outcome today. If a future rule should be
+// advisory rather than blocking, that would be a good place to add a warning
+// pathway without changing the existing pass/fail contract.
 async function main() {
   const filePaths = useStdin ? await readPathsFromStdin() : walkMarkdownFiles("playbooks");
 
   if (filePaths.length === 0) {
-    console.log("No playbook markdown files to validate.");
+    console.log("No playbook Markdown files were provided for review, so there is nothing to validate in this run.");
     return;
   }
 
   const diagnostics = [];
+  const passLogs = [];
 
+  // Each file is reviewed independently so the workflow can report all known
+  // issues across the submission, not just the first failing file.
   for (const filePath of filePaths) {
     if (!filePath.endsWith(".md")) {
       continue;
     }
 
+    // Missing files are treated as a failure because the workflow was asked to
+    // review a document that is no longer present in the repository snapshot.
     if (!fs.existsSync(filePath)) {
-      diagnostics.push(makeDiagnostic(filePath, 1, "Changed file no longer exists."));
+      diagnostics.push(
+        makeDiagnostic(
+          filePath,
+          1,
+          "file.exists",
+          "This review expected to examine this changed file, but the file is not present in the current repository snapshot.",
+          "Restore the file to the repository, or update the pull request so this file is no longer included in the review."
+        )
+      );
       continue;
     }
 
-    diagnostics.push(...validateFile(filePath));
+    const result = validateFile(filePath);
+    diagnostics.push(...result.diagnostics);
+    passLogs.push(...result.passLogs);
+  }
+
+  // Passing checks are surfaced as notices so maintainers and reviewers can
+  // understand what the validator has already confirmed successfully.
+  for (const passLog of passLogs) {
+    emitGitHubNotice(passLog);
+    console.log(`${passLog.file}:${passLog.line} PASS Review check passed: ${passLog.message}`);
   }
 
   if (diagnostics.length === 0) {
-    console.log(`Validated ${filePaths.length} playbook file(s) with no issues.`);
+    console.log(`The review completed successfully. ${filePaths.length} playbook file(s) were examined and no blocking issues were found.`);
     return;
   }
 
   for (const diagnostic of diagnostics) {
     emitGitHubError(diagnostic);
-    console.error(`${diagnostic.file}:${diagnostic.line} ${diagnostic.message}`);
+    console.error(`${diagnostic.file}:${diagnostic.line} FAIL [${diagnostic.rule}] Review check failed: ${diagnostic.message}`);
+    if (diagnostic.howToFix) {
+      console.error(`  Suggested next step: ${diagnostic.howToFix}`);
+    }
   }
 
   console.error("");
-  console.error(`Playbook review failed with ${diagnostics.length} issue(s).`);
+  console.error(`The playbook review found ${diagnostics.length} blocking issue(s). Please address the items above before this submission moves forward.`);
   process.exitCode = 1;
 }
 
@@ -46,54 +83,87 @@ function validateFile(filePath) {
   const raw = fs.readFileSync(filePath, "utf8");
   const lines = raw.split(/\r?\n/);
   const diagnostics = [];
+  const passLogs = [];
 
-  diagnostics.push(...checkTrailingWhitespace(filePath, lines));
-  diagnostics.push(...checkUnreplacedPlaceholders(filePath, lines));
-  diagnostics.push(...checkInternalLinks(filePath, lines));
-  diagnostics.push(...checkTables(filePath, lines));
+  // These are broad hygiene checks that apply to every playbook, regardless of
+  // whether the file represents a feature, a risk, or a control.
+  //
+  // Any issue returned here is a failure because it means the document is not
+  // yet ready for a clean, publishable review state.
+  diagnostics.push(...checkTrailingWhitespace(filePath, lines, passLogs));
+  diagnostics.push(...checkUnreplacedPlaceholders(filePath, lines, passLogs));
+  diagnostics.push(...checkInternalLinks(filePath, lines, passLogs));
+  diagnostics.push(...checkTables(filePath, lines, passLogs));
+  diagnostics.push(...validateStructure(filePath, lines, passLogs));
 
-  const structureErrors = validateStructure(filePath, lines);
-  diagnostics.push(...structureErrors);
-
-  return diagnostics;
+  return { diagnostics, passLogs };
 }
 
-function validateStructure(filePath, lines) {
+function validateStructure(filePath, lines, passLogs) {
+  // Structure checks ignore empty lines so that authors may space sections for
+  // readability without affecting the required sequence of meaningful content.
   const items = lines
-    .map((text, index) => ({ text: text.trim(), line: index + 1 }))
+    .map((text, index) => ({ raw: text, text: text.trim(), line: index + 1 }))
     .filter((item) => item.text.length > 0);
 
   if (items.length === 0) {
-    return [makeDiagnostic(filePath, 1, "Playbook file cannot be empty.")];
+    return [
+      makeDiagnostic(
+        filePath,
+        1,
+        "file.not_empty",
+        "This playbook file is empty, so the review cannot confirm the required public content.",
+        "Add the required headings and content for a feature, risk, or control playbook before resubmitting this document for review."
+      ),
+    ];
   }
 
   const basename = path.basename(filePath, ".md");
   const type = inferTypeFromFilename(basename);
 
+  // The filename is the gateway to the correct rule set.
+  // If the naming pattern is unclear, the validator stops with a failure
+  // rather than guessing which public template the author intended to use.
   if (!type) {
     return [
       makeDiagnostic(
         filePath,
         1,
-        "Filename must identify a feature, risk, or control playbook using the platform-feature naming scheme."
+        "filename.scheme",
+        `The filename '${basename}.md' does not follow an approved playbook naming pattern, so the validator cannot determine which public template to apply.`,
+        "Rename the file to one of the approved patterns: 'platform-feature-01.md', 'platform-feature-01-risk-01.md', or 'platform-feature-01-risk-01-control-01.md'. Each numbered placeholder must use two digits from 01 to 99."
       ),
     ];
   }
 
+  passLogs.push(makePassLog(filePath, 1, `The filename follows the approved '${type}' playbook pattern.`));
+
+  // Once the filename pattern passes, the file is routed into the matching
+  // validator. Each validator enforces the exact public template for that
+  // document type and returns only pass notices or failures.
   if (type === "feature") {
-    return validateFeatureFile(filePath, basename, items);
+    return validateFeatureFile(filePath, basename, items, passLogs);
   }
 
   if (type === "risk") {
-    return validateRiskFile(filePath, basename, items);
+    return validateRiskFile(filePath, basename, items, passLogs);
   }
 
-  return validateControlFile(filePath, basename, items);
+  return validateControlFile(filePath, basename, items, passLogs);
 }
 
-function validateFeatureFile(filePath, basename, items) {
-  const state = createParser(filePath, items);
-  const heading = state.expect(/^## (platform-feature-[a-z0-9-]+)$/, "Expected a level-2 feature heading like '## platform-feature-example'.");
+function validateFeatureFile(filePath, basename, items, passLogs) {
+  const state = createParser(filePath, items, passLogs);
+
+  // Feature playbooks describe a platform capability, explain its context,
+  // show how it works, and then list the related risk playbooks.
+  // A mismatch in any required section is a failure because the document would
+  // no longer follow the agreed public template.
+  const heading = state.expect(
+    /^## (platform-feature-(0[1-9]|[1-9][0-9]))$/,
+    "feature.heading",
+    "The feature heading must be written exactly as '## platform-feature-01', where '01' is replaced with a two-digit value from 01 to 99."
+  );
 
   if (!heading) {
     return state.diagnostics;
@@ -101,51 +171,98 @@ function validateFeatureFile(filePath, basename, items) {
 
   const headingSlug = heading.match[1];
   if (headingSlug !== basename) {
-    state.error(heading.line, `Filename '${basename}.md' must match heading '${headingSlug}'.`);
+    state.error(
+      heading.line,
+      "heading.filename_match",
+      `The top heading identifies this file as '${headingSlug}', but the filename is '${basename}.md'. These two identifiers must match so the document can be reviewed consistently.`,
+      `Rename the file to '${headingSlug}.md', or change the heading to '## ${basename}' so the heading and filename agree.`
+    );
     return state.diagnostics;
   }
+  state.pass(heading.line, `The top heading matches the filename identifier '${headingSlug}'.`);
 
-  state.expectText("### Description", "Expected the '### Description' heading.");
-  const description = state.expect(/^The Android platform provides (.+) feature\.$/, "Expected 'The Android platform provides {feature_name} feature.'");
+  // These paired checks confirm both format and internal consistency:
+  // - the wording must match the template
+  // - the same feature name must be reused across related sections
+  state.expectText("### Description", "feature.description_heading", "The next required section heading is '### Description'.");
+  const description = state.expect(
+    /^The Android platform provides (.+) feature\.$/,
+    "feature.description_sentence",
+    "The description sentence must be written exactly as 'The Android platform provides <feature_name> feature.'."
+  );
   if (!description) {
     return state.diagnostics;
   }
 
   const featureName = description.match[1];
+  state.pass(description.line, "The description sentence follows the approved public wording.");
 
-  state.expectText("### Additional context", "Expected the '### Additional context' heading.");
-  const context = state.expect(/^(.+) is a feature that (.+)\.$/, "Expected '{feature_name} is a feature that {function}.'");
+  state.expectText("### Additional context", "feature.additional_context_heading", "The next required section heading is '### Additional context'.");
+  const context = state.expect(
+    /^(.+) is a feature that (.+)\.$/,
+    "feature.additional_context_sentence",
+    "The additional context sentence must be written exactly as '<feature_name> is a feature that <function>.'"
+  );
   if (!context) {
     return state.diagnostics;
   }
 
   if (context.match[1] !== featureName) {
-    state.error(context.line, "The feature name in 'Additional context' must match the feature name used in 'Description'.");
+    state.error(
+      context.line,
+      "feature.additional_context_feature_name",
+      `The additional context section names the feature as '${context.match[1]}', but the description section names it as '${featureName}'. The same feature name must be used throughout the document.`,
+      `Rewrite the additional context line so it begins with '${featureName} is a feature that ...'.`
+    );
     return state.diagnostics;
   }
+  state.pass(context.line, "The additional context section uses the same feature name as the description.");
 
-  state.expectText("### Demonstration", "Expected the '### Demonstration' heading.");
-  state.expect(/^Set up .+ with the following configuration:$/, "Expected 'Set up {...} with the following configuration:'.");
+  // Demonstration checks ensure the feature can be understood in practice.
+  // A valid setup line, a valid configuration table, and at least one valid
+  // numbered step are all required for a passing outcome.
+  state.expectText("### Demonstration", "feature.demonstration_heading", "The next required section heading is '### Demonstration'.");
+  state.expect(
+    /^Set up .+ with the following configuration:$/,
+    "feature.setup_line",
+    "The setup line must be written exactly as 'Set up <environment> with the following configuration:'."
+  );
   if (state.diagnostics.length > 0) {
     return state.diagnostics;
   }
 
-  state.expectTable("Expected a configuration table after the demonstration setup line.");
+  state.expectTable();
   if (state.diagnostics.length > 0) {
     return state.diagnostics;
   }
 
-  const stepsIntro = state.expect(/^Perform the following steps to enable (.+):$/, "Expected 'Perform the following steps to enable {feature_name}:'.");
+  const stepsIntro = state.expect(
+    /^Perform the following steps to enable (.+):$/,
+    "feature.steps_intro",
+    "The step introduction must be written exactly as 'Perform the following steps to enable <feature_name>:'."
+  );
   if (!stepsIntro) {
     return state.diagnostics;
   }
 
   if (stepsIntro.match[1] !== featureName) {
-    state.error(stepsIntro.line, "The feature name in the demonstration steps must match the feature name used in 'Description'.");
+    state.error(
+      stepsIntro.line,
+      "feature.steps_feature_name",
+      `The demonstration introduction refers to '${stepsIntro.match[1]}', but the description section refers to '${featureName}'. The same feature name must be used throughout the document.`,
+      `Rewrite the line as 'Perform the following steps to enable ${featureName}:'.`
+    );
     return state.diagnostics;
   }
+  state.pass(stepsIntro.line, "The demonstration introduction uses the same feature name as the description.");
 
-  state.expectNumberedList("Expected at least one numbered demonstration step in the form '1. {action_verb} to {objective}'.", /^(\d+)\. .+ to .+$/);
+  // This numbered-list check is intentionally broad about the action details
+  // while still requiring a predictable sentence shape for scalable review.
+  state.expectNumberedList(
+    /^(\d+)\. .+ to .+$/,
+    "feature.demo_steps",
+    "Each demonstration step must follow the approved format '1. <action_verb> to <objective>'."
+  );
   if (state.diagnostics.length > 0) {
     return state.diagnostics;
   }
@@ -155,38 +272,57 @@ function validateFeatureFile(filePath, basename, items) {
       /^Because the Android platform provides (.+) feature, your app is at risk of:$/,
       /^Because the Android platform provides (.+) feature, your$/,
     ],
-    "Expected the risk introduction paragraph after the demonstration steps."
+    "feature.risk_intro",
+    "The risk introduction must read 'Because the Android platform provides <feature_name> feature, your app is at risk of:' on one line, or be split exactly before 'app is at risk of:'."
   );
   if (!riskIntro) {
     return state.diagnostics;
   }
 
   if (riskIntro.match[1] !== featureName) {
-    state.error(riskIntro.line, "The feature name in the risk introduction must match the feature name used in 'Description'.");
+    state.error(
+      riskIntro.line,
+      "feature.risk_intro_feature_name",
+      `The risk introduction names the feature as '${riskIntro.match[1]}', but the description section names it as '${featureName}'. The same feature name must be used throughout the document.`,
+      `Rewrite the risk introduction so it uses '${featureName}'.`
+    );
     return state.diagnostics;
   }
 
   if (riskIntro.text.endsWith("your")) {
-    const continuation = state.expect(/^app is at risk of:$/, "Expected the second line of the risk introduction to be 'app is at risk of:'.");
+    const continuation = state.expect(
+      /^app is at risk of:$/,
+      "feature.risk_intro_continuation",
+      "When the risk introduction is split over two lines, the second line must be written exactly as 'app is at risk of:'."
+    );
     if (!continuation) {
       return state.diagnostics;
     }
   }
+  state.pass(riskIntro.line, "The risk introduction follows the approved public wording.");
 
-  const riskPattern = new RegExp(`^(\\d+)\\. ${escapeRegex(headingSlug)}-risk-[a-z0-9-]+$`);
+  // The final feature check ensures the playbook points to one or more risk
+  // playbooks using filenames that stay linked to the current feature slug.
+  const riskPattern = new RegExp(`^(\\d+)\\. ${escapeRegex(headingSlug)}-risk-(0[1-9]|[1-9][0-9])$`);
   state.expectNumberedList(
-    "Expected at least one numbered risk reference like '1. platform-feature-example-risk-something'.",
-    riskPattern
+    riskPattern,
+    "feature.risk_references",
+    `Each risk reference must follow the approved format '1. ${headingSlug}-risk-01', where '01' is replaced with a two-digit value from 01 to 99.`
   );
-  state.expectEnd("Unexpected extra content after the numbered risk references.");
+  state.expectEnd("feature.extra_content", "No additional content is allowed after the numbered list of related risk references.");
   return state.diagnostics;
 }
 
-function validateRiskFile(filePath, basename, items) {
-  const state = createParser(filePath, items);
+function validateRiskFile(filePath, basename, items, passLogs) {
+  const state = createParser(filePath, items, passLogs);
+
+  // Risk playbooks describe how a platform feature could be misused and what
+  // harmful outcome that misuse could create. These checks keep that story
+  // complete, consistent, and easy to compare across many playbooks.
   const heading = state.expect(
-    /^## (platform-feature-[a-z0-9-]+-risk-[a-z0-9-]+)$/,
-    "Expected a level-2 risk heading like '## platform-feature-example-risk-example'."
+    /^## (platform-feature-(0[1-9]|[1-9][0-9])-risk-(0[1-9]|[1-9][0-9]))$/,
+    "risk.heading",
+    "The risk heading must be written exactly as '## platform-feature-01-risk-01', where each numbered placeholder uses a two-digit value from 01 to 99."
   );
 
   if (!heading) {
@@ -195,17 +331,24 @@ function validateRiskFile(filePath, basename, items) {
 
   const headingSlug = heading.match[1];
   if (headingSlug !== basename) {
-    state.error(heading.line, `Filename '${basename}.md' must match heading '${headingSlug}'.`);
+    state.error(
+      heading.line,
+      "heading.filename_match",
+      `The top heading identifies this file as '${headingSlug}', but the filename is '${basename}.md'. These two identifiers must match so the document can be reviewed consistently.`,
+      `Rename the file to '${headingSlug}.md', or change the heading to '## ${basename}' so the heading and filename agree.`
+    );
     return state.diagnostics;
   }
+  state.pass(heading.line, `The top heading matches the filename identifier '${headingSlug}'.`);
 
-  state.expectText("### Description", "Expected the '### Description' heading.");
+  state.expectText("### Description", "risk.description_heading", "The next required section heading is '### Description'.");
   const description = state.expectOneOf(
     [
       /^Because the Android platform provides (.+) feature, your application is at risk of an attacker (.+)\.$/,
       /^Because the Android platform provides (.+) feature, your application$/,
     ],
-    "Expected the risk description paragraph."
+    "risk.description_sentence",
+    "The risk description must follow the approved public template exactly."
   );
   if (!description) {
     return state.diagnostics;
@@ -217,7 +360,8 @@ function validateRiskFile(filePath, basename, items) {
   if (!technique) {
     const continuation = state.expect(
       /^is at risk of an attacker (.+)\.$/,
-      "Expected the second line of the risk description to be 'is at risk of an attacker {technique}.'"
+      "risk.description_continuation",
+      "When the risk description is split over two lines, the second line must be written exactly as 'is at risk of an attacker <technique>.'"
     );
     if (!continuation) {
       return state.diagnostics;
@@ -225,47 +369,78 @@ function validateRiskFile(filePath, basename, items) {
 
     technique = continuation.match[1];
   }
+  state.pass(description.line, "The risk description follows the approved public wording.");
 
-  state.expectText("### Goal", "Expected the '### Goal' heading.");
-  state.expect(/^As a result, this could lead to .+\.$/, "Expected 'As a result, this could lead to {tactic}.'");
+  // The goal section explains the consequence of the risk.
+  // The demonstration section shows the risk in action using a structured,
+  // repeatable format. Each missing or malformed part is a failure.
+  state.expectText("### Goal", "risk.goal_heading", "The next required section heading is '### Goal'.");
+  state.expect(
+    /^As a result, this could lead to .+\.$/,
+    "risk.goal_sentence",
+    "The goal sentence must be written exactly as 'As a result, this could lead to <tactic>.'"
+  );
   if (state.diagnostics.length > 0) {
     return state.diagnostics;
   }
 
-  state.expectText("### Demonstration", "Expected the '### Demonstration' heading.");
-  state.expect(/^Set up .+ with the following configuration:$/, "Expected 'Set up {...} with the following configuration:'.");
+  state.expectText("### Demonstration", "risk.demonstration_heading", "The next required section heading is '### Demonstration'.");
+  state.expect(
+    /^Set up .+ with the following configuration:$/,
+    "risk.setup_line",
+    "The setup line must be written exactly as 'Set up <environment> with the following configuration:'."
+  );
   if (state.diagnostics.length > 0) {
     return state.diagnostics;
   }
 
-  state.expectTable("Expected a configuration table after the demonstration setup line.");
+  state.expectTable();
   if (state.diagnostics.length > 0) {
     return state.diagnostics;
   }
 
   const stepsIntro = state.expect(
     /^Perform the following steps to demonstrate the risk of an attacker (.+):$/,
-    "Expected 'Perform the following steps to demonstrate the risk of an attacker {technique}:'."
+    "risk.steps_intro",
+    "The step introduction must be written exactly as 'Perform the following steps to demonstrate the risk of an attacker <technique>:'."
   );
   if (!stepsIntro) {
     return state.diagnostics;
   }
 
   if (stepsIntro.match[1] !== technique) {
-    state.error(stepsIntro.line, "The attacker technique in the demonstration steps must match the technique used in 'Description'.");
+    state.error(
+      stepsIntro.line,
+      "risk.steps_technique",
+      `The demonstration introduction names the attacker technique as '${stepsIntro.match[1]}', but the description section names it as '${technique}'. The same technique must be used throughout the document.`,
+      `Rewrite the line as 'Perform the following steps to demonstrate the risk of an attacker ${technique}:'.`
+    );
     return state.diagnostics;
   }
+  state.pass(stepsIntro.line, "The demonstration introduction uses the same attacker technique as the description.");
 
-  state.expectNumberedList("Expected at least one numbered demonstration step in the form '1. {action_verb} to {objective}'.", /^(\d+)\. .+ to .+$/);
-  state.expectEnd("Unexpected extra content after the demonstration steps.");
+  // The technique named in the demonstration must match the technique named in
+  // the description. This prevents public-facing documents from drifting into
+  // inconsistent attacker narratives.
+  state.expectNumberedList(
+    /^(\d+)\. .+ to .+$/,
+    "risk.demo_steps",
+    "Each demonstration step must follow the approved format '1. <action_verb> to <objective>'."
+  );
+  state.expectEnd("risk.extra_content", "No additional content is allowed after the numbered demonstration steps.");
   return state.diagnostics;
 }
 
-function validateControlFile(filePath, basename, items) {
-  const state = createParser(filePath, items);
+function validateControlFile(filePath, basename, items, passLogs) {
+  const state = createParser(filePath, items, passLogs);
+
+  // Control playbooks are intentionally concise. They must identify the risk,
+  // provide a detection step, provide a prevention step, and point to the APK
+  // that demonstrates the control. Anything missing becomes a failure.
   const heading = state.expect(
-    /^## (platform-feature-[a-z0-9-]+-risk-[a-z0-9-]+-control-[a-z0-9-]+)$/,
-    "Expected a level-2 control heading like '## platform-feature-example-risk-example-control-example'."
+    /^## (platform-feature-(0[1-9]|[1-9][0-9])-risk-(0[1-9]|[1-9][0-9])-control-(0[1-9]|[1-9][0-9]))$/,
+    "control.heading",
+    "The control heading must be written exactly as '## platform-feature-01-risk-01-control-01', where each numbered placeholder uses a two-digit value from 01 to 99."
   );
 
   if (!heading) {
@@ -274,55 +449,82 @@ function validateControlFile(filePath, basename, items) {
 
   const headingSlug = heading.match[1];
   if (headingSlug !== basename) {
-    state.error(heading.line, `Filename '${basename}.md' must match heading '${headingSlug}'.`);
+    state.error(
+      heading.line,
+      "heading.filename_match",
+      `The top heading identifies this file as '${headingSlug}', but the filename is '${basename}.md'. These two identifiers must match so the document can be reviewed consistently.`,
+      `Rename the file to '${headingSlug}.md', or change the heading to '## ${basename}' so the heading and filename agree.`
+    );
     return state.diagnostics;
   }
+  state.pass(heading.line, `The top heading matches the filename identifier '${headingSlug}'.`);
 
-  const intro = state.expect(
+  state.expect(
     /^Your app can prevent the risk of an attacker (.+) by taking the following steps:$/,
-    "Expected 'Your app can prevent the risk of an attacker {technique} by taking the following steps:'."
+    "control.intro",
+    "The control introduction must be written exactly as 'Your app can prevent the risk of an attacker <technique> by taking the following steps:'."
   );
-  if (!intro) {
-    return state.diagnostics;
-  }
-
-  state.expect(/^1\. Detect by .+$/, "Expected the first control step to be '1. Detect by {instructions}'.");
-  state.expect(/^2\. Prevent by .+$/, "Expected the second control step to be '2. Prevent by {instructions}'.");
-  state.expect(/^The APK with the implemented control can be found \[here\]\((.+)\)\.$/, "Expected 'The APK with the implemented control can be found [here](path).' at the end of the file.");
-  state.expectEnd("Unexpected extra content after the APK link.");
+  state.expect(
+    /^1\. Detect by .+$/,
+    "control.detect_step",
+    "The first control step must be written exactly as '1. Detect by <instructions>'."
+  );
+  state.expect(
+    /^2\. Prevent by .+$/,
+    "control.prevent_step",
+    "The second control step must be written exactly as '2. Prevent by <instructions>'."
+  );
+  state.expect(
+    /^The APK with the implemented control can be found \[here\]\((.+)\)\.$/,
+    "control.apk_link",
+    "The final line must be written exactly as 'The APK with the implemented control can be found [here](path).'."
+  );
+  state.expectEnd("control.extra_content", "No additional content is allowed after the APK link.");
   return state.diagnostics;
 }
 
-function createParser(filePath, items) {
+function createParser(filePath, items, passLogs) {
   return {
     diagnostics: [],
     index: 0,
-    error(line, message) {
-      this.diagnostics.push(makeDiagnostic(filePath, line, message));
+    pass(line, message) {
+      passLogs.push(makePassLog(filePath, line, message));
+    },
+    error(line, rule, message, howToFix) {
+      this.diagnostics.push(makeDiagnostic(filePath, line, rule, message, howToFix));
     },
     current() {
       return items[this.index];
     },
-    expect(pattern, message) {
+    // Generic sequential matcher:
+    // - Pass: advances to the next meaningful line and records a notice.
+    // - Fail: records a blocking diagnostic with a suggested repair.
+    //
+    // This pattern keeps new rule authoring scalable because most future
+    // structure checks can be expressed as "expect this next line to match."
+    expect(pattern, rule, message) {
       const item = this.current();
       if (!item) {
-        this.error(items.at(-1)?.line ?? 1, message);
+        this.error(items.at(-1)?.line ?? 1, rule, `${message} The document ends before that required line appears.`, "Add the missing line in the required position so the document can continue through review.");
         return null;
       }
 
       const match = item.text.match(pattern);
       if (!match) {
-        this.error(item.line, message);
+        this.error(item.line, rule, `${message} The review found '${item.text}' on this line instead.`, `Replace line ${item.line} with the required template text so the document matches the approved format.`);
         return null;
       }
 
       this.index += 1;
+      this.pass(item.line, `The required check '${rule}' passed at this line.`);
       return { ...item, match };
     },
-    expectOneOf(patterns, message) {
+    // Variant matcher for cases where the public template permits one of a
+    // small number of exact phrasings, such as a sentence split over two lines.
+    expectOneOf(patterns, rule, message) {
       const item = this.current();
       if (!item) {
-        this.error(items.at(-1)?.line ?? 1, message);
+        this.error(items.at(-1)?.line ?? 1, rule, `${message} The document ends before an approved version of this line appears.`, "Add the missing line in the required position so the document can continue through review.");
         return null;
       }
 
@@ -330,20 +532,31 @@ function createParser(filePath, items) {
         const match = item.text.match(pattern);
         if (match) {
           this.index += 1;
+          this.pass(item.line, `${rule} passed.`);
           return { ...item, match };
         }
       }
 
-      this.error(item.line, message);
+      this.error(item.line, rule, `${message} The review found '${item.text}' on this line instead.`, `Replace line ${item.line} with wording that matches one of the approved template options.`);
       return null;
     },
-    expectText(text, message) {
-      return this.expect(new RegExp(`^${escapeRegex(text)}$`), message);
+    expectText(text, rule, message) {
+      return this.expect(new RegExp(`^${escapeRegex(text)}$`), rule, message);
     },
-    expectTable(message) {
+    // Required configuration-table check:
+    // - Pass: header is exact, separator is present, and at least one data row exists.
+    // - Fail: missing table, wrong header, or too few rows.
+    //
+    // General Markdown table quality is also checked elsewhere by checkTables().
+    expectTable() {
       const start = this.current();
       if (!start || !start.text.startsWith("|")) {
-        this.error(start?.line ?? items.at(-1)?.line ?? 1, message);
+        this.error(
+          start?.line ?? items.at(-1)?.line ?? 1,
+          "table.missing",
+          "A configuration table is required immediately after the setup line, but no table appears in that position.",
+          "Add a table in that position with the exact header '| Configuration | Detail |', a separator row, and at least one data row."
+        );
         return null;
       }
 
@@ -354,22 +567,43 @@ function createParser(filePath, items) {
       }
 
       if (tableLines.length < 3) {
-        this.error(start.line, "Configuration tables must include a header, separator, and at least one data row.");
+        this.error(
+          start.line,
+          "table.row_count",
+          `The configuration table must contain at least 3 lines, but only ${tableLines.length} line(s) were found.`,
+          "Add the required header row, separator row, and at least one data row."
+        );
         return null;
       }
 
       const headerCells = parseTableCells(tableLines[0].text);
       if (headerCells.length !== 2 || headerCells[0] !== "Configuration" || headerCells[1] !== "Detail") {
-        this.error(tableLines[0].line, "Configuration tables must use the exact header '| Configuration | Detail |'.");
+        this.error(
+          tableLines[0].line,
+          "table.header",
+          `The configuration table header must be '| Configuration | Detail |', but the review found '${tableLines[0].text}' instead.`,
+          "Change the first row of the table to '| Configuration | Detail |'."
+        );
         return null;
       }
 
+      this.pass(tableLines[0].line, "The configuration table uses the approved header.");
+      this.pass(tableLines[1].line, "The configuration table includes a separator row.");
+      this.pass(tableLines[2].line, "The configuration table includes at least one data row.");
       return tableLines;
     },
-    expectNumberedList(message, itemPattern) {
+    // Numbered-list check:
+    // - Pass: at least one numbered item exists and every item matches the rule.
+    // - Fail: the list is missing or any item breaks the agreed sentence pattern.
+    expectNumberedList(itemPattern, rule, message) {
       const start = this.current();
       if (!start || !/^\d+\.\s+/.test(start.text)) {
-        this.error(start?.line ?? items.at(-1)?.line ?? 1, message);
+        this.error(
+          start?.line ?? items.at(-1)?.line ?? 1,
+          rule,
+          `${message} A numbered list item was required at this point, but none was found.`,
+          "Add at least one numbered item that follows the required template."
+        );
         return null;
       }
 
@@ -377,74 +611,137 @@ function createParser(filePath, items) {
       while (this.current() && /^\d+\.\s+/.test(this.current().text)) {
         const item = this.current();
         if (!itemPattern.test(item.text)) {
-          this.error(item.line, message);
+          this.error(
+            item.line,
+            rule,
+            `${message} The review found '${item.text}' on this line instead.`,
+            `Rewrite line ${item.line} so it follows the required numbered-list format.`
+          );
           return null;
         }
 
         count += 1;
+        this.pass(item.line, `Numbered list item ${count} passed the '${rule}' review check.`);
         this.index += 1;
-      }
-
-      if (count === 0) {
-        this.error(start.line, message);
-        return null;
       }
 
       return true;
     },
-    expectEnd(message) {
+    // End-of-document guard:
+    // - Pass implicitly when no extra content remains.
+    // - Fail when unexpected material appears after the final required section.
+    expectEnd(rule, message) {
       if (this.current()) {
-        this.error(this.current().line, message);
+        this.error(
+          this.current().line,
+          rule,
+          `${message} The review found additional content here: '${this.current().text}'.`,
+          "Remove the extra content that appears after the final required section."
+        );
       }
     },
   };
 }
 
 function inferTypeFromFilename(basename) {
-  if (/^platform-feature-[a-z0-9-]+-risk-[a-z0-9-]+-control-[a-z0-9-]+$/.test(basename)) {
+  // Filename classification is strict because the filename determines which
+  // public template will be enforced next.
+  if (/^platform-feature-(0[1-9]|[1-9][0-9])-risk-(0[1-9]|[1-9][0-9])-control-(0[1-9]|[1-9][0-9])$/.test(basename)) {
     return "control";
   }
 
-  if (/^platform-feature-[a-z0-9-]+-risk-[a-z0-9-]+$/.test(basename)) {
+  if (/^platform-feature-(0[1-9]|[1-9][0-9])-risk-(0[1-9]|[1-9][0-9])$/.test(basename)) {
     return "risk";
   }
 
-  if (/^platform-feature-[a-z0-9-]+$/.test(basename)) {
+  if (/^platform-feature-(0[1-9]|[1-9][0-9])$/.test(basename)) {
     return "feature";
   }
 
   return null;
 }
 
-function checkTrailingWhitespace(filePath, lines) {
+function checkTrailingWhitespace(filePath, lines, passLogs) {
   const diagnostics = [];
+  let foundIssue = false;
 
+  // Trailing whitespace is a fail-only hygiene check.
+  // It does not change the meaning of the content, but it does reduce
+  // consistency and creates avoidable noise in reviews and diffs.
   for (const [index, line] of lines.entries()) {
     if (/[ \t]+$/.test(line)) {
-      diagnostics.push(makeDiagnostic(filePath, index + 1, "Trailing whitespace is not allowed."));
+      foundIssue = true;
+      diagnostics.push(
+        makeDiagnostic(
+          filePath,
+          index + 1,
+          "whitespace.trailing",
+          `This line ends with trailing whitespace, which is not allowed in the reviewed document. The line appears as '${visualizeWhitespace(line)}'.`,
+          "Remove the spaces or tabs at the end of this line."
+        )
+      );
     }
+  }
+
+  if (!foundIssue) {
+    passLogs.push(makePassLog(filePath, 1, "No trailing whitespace was found in this document."));
   }
 
   return diagnostics;
 }
 
-function checkUnreplacedPlaceholders(filePath, lines) {
+function checkUnreplacedPlaceholders(filePath, lines, passLogs) {
   const diagnostics = [];
+  let foundIssue = false;
 
+  // Placeholder checks protect against unfinished template content reaching a
+  // public review. Any remaining placeholder or stray brace is a failure.
   for (const [index, line] of lines.entries()) {
-    if (/\{[^}]*\}/.test(line) || /[{}]/.test(line)) {
-      diagnostics.push(makeDiagnostic(filePath, index + 1, "Placeholders must be fully replaced before review."));
+    const placeholder = line.match(/\{[^}]*\}/);
+    if (placeholder) {
+      foundIssue = true;
+      diagnostics.push(
+        makeDiagnostic(
+          filePath,
+          index + 1,
+          "placeholder.unreplaced",
+          `This line still contains the placeholder '${placeholder[0]}', which indicates that template text was not replaced with final content. The affected line is '${line.trim()}'.`,
+          "Replace the placeholder with the final playbook content intended for public review."
+        )
+      );
+      continue;
     }
+
+    if (/[{}]/.test(line)) {
+      foundIssue = true;
+      diagnostics.push(
+        makeDiagnostic(
+          filePath,
+          index + 1,
+          "placeholder.braces",
+          `This line contains an unexpected brace character, which may indicate leftover template content. The affected line is '${line.trim()}'.`,
+          "Remove the '{' or '}' character, or replace the remaining template text with final content."
+        )
+      );
+    }
+  }
+
+  if (!foundIssue) {
+    passLogs.push(makePassLog(filePath, 1, "No unreplaced placeholders or stray template braces were found."));
   }
 
   return diagnostics;
 }
 
-function checkInternalLinks(filePath, lines) {
+function checkInternalLinks(filePath, lines, passLogs) {
   const diagnostics = [];
   const directory = path.dirname(filePath);
   const linkPattern = /\[[^\]]+\]\(([^)]+)\)/g;
+  let linkCount = 0;
 
+  // Internal link checks confirm that local repository references still point
+  // to real files. External links and in-page anchors are excluded because
+  // this validator is focused on repository integrity.
   for (const [index, line] of lines.entries()) {
     for (const match of line.matchAll(linkPattern)) {
       const rawTarget = match[1].trim();
@@ -458,18 +755,39 @@ function checkInternalLinks(filePath, lines) {
       const resolvedPath = path.resolve(directory, relativePath);
 
       if (!fs.existsSync(resolvedPath)) {
-        diagnostics.push(makeDiagnostic(filePath, index + 1, `Internal link target does not exist: ${relativePath}`));
+        diagnostics.push(
+          makeDiagnostic(
+            filePath,
+            index + 1,
+            "link.internal_exists",
+            `This internal repository link points to '${relativePath}', but that file does not exist from the perspective of this document. The affected line is '${line.trim()}'.`,
+            "Correct the relative path, or add the missing file so the link can be reviewed successfully."
+          )
+        );
+        continue;
       }
+
+      linkCount += 1;
+      passLogs.push(makePassLog(filePath, index + 1, `The internal repository link target '${relativePath}' exists and can be resolved from this document.`));
     }
+  }
+
+  if (linkCount === 0) {
+    passLogs.push(makePassLog(filePath, 1, "No internal repository links were found in this document, so no local link validation was required."));
   }
 
   return diagnostics;
 }
 
-function checkTables(filePath, lines) {
+function checkTables(filePath, lines, passLogs) {
   const diagnostics = [];
   let index = 0;
+  let tableCount = 0;
 
+  // This is the broad Markdown table quality check.
+  // It runs independently from the required-structure table check so that:
+  // - required configuration tables must appear in the right place, and
+  // - any table anywhere in the file must still be well-formed Markdown.
   while (index < lines.length) {
     if (!lines[index].trim().startsWith("|")) {
       index += 1;
@@ -477,15 +795,25 @@ function checkTables(filePath, lines) {
     }
 
     const block = [];
-    let lineNumber = index + 1;
+    const lineNumber = index + 1;
 
     while (index < lines.length && lines[index].trim().startsWith("|")) {
       block.push(lines[index].trim());
       index += 1;
     }
 
+    tableCount += 1;
+
     if (block.length < 3) {
-      diagnostics.push(makeDiagnostic(filePath, lineNumber, "Markdown tables must include a header, separator, and at least one data row."));
+      diagnostics.push(
+        makeDiagnostic(
+          filePath,
+          lineNumber,
+          "table.markdown_row_count",
+          `The Markdown table starting at line ${lineNumber} must include a header row, a separator row, and at least one data row, but only ${block.length} row(s) were found.`,
+          "Add the missing separator row or data row so the table is complete."
+        )
+      );
       continue;
     }
 
@@ -493,13 +821,31 @@ function checkTables(filePath, lines) {
     const expectedColumnCount = widths[0].length;
 
     if (expectedColumnCount < 2) {
-      diagnostics.push(makeDiagnostic(filePath, lineNumber, "Markdown tables must contain at least two columns."));
+      diagnostics.push(
+        makeDiagnostic(
+          filePath,
+          lineNumber,
+          "table.markdown_column_count",
+          `The Markdown table starting at line ${lineNumber} has only ${expectedColumnCount} column(s), but at least 2 columns are required for review.`,
+          "Add enough pipe-separated columns for the table to contain at least two columns."
+        )
+      );
       continue;
     }
 
     const separatorCells = widths[1];
     if (separatorCells.length !== expectedColumnCount || separatorCells.some((cell) => !/^:?-{3,}:?$/.test(cell))) {
-      diagnostics.push(makeDiagnostic(filePath, lineNumber + 1, "The second row of each Markdown table must be a valid separator row."));
+      diagnostics.push(
+        makeDiagnostic(
+          filePath,
+          lineNumber + 1,
+          "table.separator",
+          `The table separator row at line ${lineNumber + 1} is not valid Markdown table syntax. The review found '${block[1]}' instead.`,
+          "Use a separator row such as '| -------- | ------- |' so the table is recognized correctly."
+        )
+      );
+    } else {
+      passLogs.push(makePassLog(filePath, lineNumber + 1, `Markdown table ${tableCount} includes a valid separator row.`));
     }
 
     for (let offset = 0; offset < widths.length; offset += 1) {
@@ -508,17 +854,25 @@ function checkTables(filePath, lines) {
           makeDiagnostic(
             filePath,
             lineNumber + offset,
-            `Table row has ${widths[offset].length} column(s); expected ${expectedColumnCount}.`
+            "table.column_alignment",
+            `The table row at line ${lineNumber + offset} has ${widths[offset].length} column(s), but the header row establishes ${expectedColumnCount} column(s). The review found '${block[offset]}' on this line.`,
+            "Adjust this row so it uses the same number of columns as the table header."
           )
         );
       }
     }
   }
 
+  if (tableCount === 0) {
+    passLogs.push(makePassLog(filePath, 1, "No additional Markdown tables were found outside the required structure checks."));
+  }
+
   return diagnostics;
 }
 
 function parseTableCells(line) {
+  // Table parsing is intentionally simple because the supported playbook tables
+  // are expected to be plain Markdown tables without advanced escaping rules.
   return line
     .split("|")
     .slice(1, -1)
@@ -526,6 +880,8 @@ function parseTableCells(line) {
 }
 
 function walkMarkdownFiles(rootDirectory) {
+  // When stdin is not provided, the validator reviews every Markdown file under
+  // the playbooks directory so local full-repository checks remain simple.
   if (!fs.existsSync(rootDirectory)) {
     return [];
   }
@@ -550,6 +906,8 @@ function walkMarkdownFiles(rootDirectory) {
 }
 
 function readPathsFromStdin() {
+  // Stdin mode supports pull-request workflows that want to validate only the
+  // files changed in a proposal rather than rechecking the entire directory.
   return new Promise((resolve) => {
     let buffer = "";
     process.stdin.setEncoding("utf8");
@@ -567,17 +925,46 @@ function readPathsFromStdin() {
   });
 }
 
-function makeDiagnostic(file, line, message) {
+function makeDiagnostic(file, line, rule, message, howToFix = "") {
+  // Diagnostics represent blocking failures.
+  return { file, line, rule, message, howToFix };
+}
+
+function makePassLog(file, line, message) {
+  // Pass logs represent successful checks and are emitted as GitHub notices.
   return { file, line, message };
 }
 
-function emitGitHubError({ file, line, message }) {
-  const escapedMessage = message.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
+function emitGitHubError({ file, line, rule, message }) {
+  // GitHub error annotations are used for failures because they make the
+  // workflow fail and point reviewers directly to the affected line.
+  const escapedMessage = escapeWorkflowValue(`[${rule}] ${message}`);
   console.log(`::error file=${file},line=${line},title=Playbook validation::${escapedMessage}`);
 }
 
+function emitGitHubNotice({ file, line, message }) {
+  // GitHub notices are used for passes so reviewers can see what has already
+  // been confirmed without turning successful checks into warnings or errors.
+  const escapedMessage = escapeWorkflowValue(message);
+  console.log(`::notice file=${file},line=${line},title=Playbook validation::${escapedMessage}`);
+}
+
+function escapeWorkflowValue(value) {
+  // Workflow annotation values must be escaped so special characters do not
+  // corrupt the log output shown in GitHub Actions.
+  return value.replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A");
+}
+
 function escapeRegex(value) {
+  // User-facing literal text is escaped before building regex patterns so the
+  // validator treats template text as text, not as regex syntax.
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function visualizeWhitespace(line) {
+  // Whitespace is visualized to make invisible formatting problems readable in
+  // failure messages.
+  return line.replace(/\t/g, "\\t").replace(/ /g, "·");
 }
 
 await main();
