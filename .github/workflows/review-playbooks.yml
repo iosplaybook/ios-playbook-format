@@ -1,0 +1,41 @@
+name: Review Playbooks
+
+on:
+  pull_request:
+
+jobs:
+  review-playbooks:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Collect changed playbooks
+        id: changed
+        shell: bash
+        run: |
+          git fetch origin "${{ github.base_ref }}" --depth=1
+          files="$(git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" | grep '^playbooks/.*\.md$' || true)"
+          {
+            echo 'files<<EOF'
+            echo "$files"
+            echo 'EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Validate changed playbooks
+        shell: bash
+        run: |
+          if [ -z "${{ steps.changed.outputs.files }}" ]; then
+            echo "No changed playbook markdown files found under playbooks/."
+            exit 0
+          fi
+
+          printf '%s\n' "${{ steps.changed.outputs.files }}" | node scripts/validate-playbooks.mjs --stdin
