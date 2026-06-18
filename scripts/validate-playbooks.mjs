@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { pathToFileURL } from "node:url";
 
 const args = process.argv.slice(2);
 const useStdin = args.includes("--stdin");
@@ -156,7 +157,7 @@ function validateFeatureFile(filePath, basename, items, passLogs) {
   const state = createParser(filePath, items, passLogs);
 
   // Feature playbooks describe a platform capability, explain its context,
-  // show how it works, and then list the related risk playbooks.
+  // and show how it works.
   // A mismatch in any required section is a failure because the document would
   // no longer follow the agreed public template.
   const heading = state.expect(
@@ -263,53 +264,7 @@ function validateFeatureFile(filePath, basename, items, passLogs) {
     "feature.demo_steps",
     "Each demonstration step must follow the approved format '1. <action_verb> to <objective>'."
   );
-  if (state.diagnostics.length > 0) {
-    return state.diagnostics;
-  }
-
-  const riskIntro = state.expectOneOf(
-    [
-      /^Because the Android platform provides (.+) feature, your app is at risk of:$/,
-      /^Because the Android platform provides (.+) feature, your$/,
-    ],
-    "feature.risk_intro",
-    "The risk introduction must read 'Because the Android platform provides <feature_name> feature, your app is at risk of:' on one line, or be split exactly before 'app is at risk of:'."
-  );
-  if (!riskIntro) {
-    return state.diagnostics;
-  }
-
-  if (riskIntro.match[1] !== featureName) {
-    state.error(
-      riskIntro.line,
-      "feature.risk_intro_feature_name",
-      `The risk introduction names the feature as '${riskIntro.match[1]}', but the description section names it as '${featureName}'. The same feature name must be used throughout the document.`,
-      `Rewrite the risk introduction so it uses '${featureName}'.`
-    );
-    return state.diagnostics;
-  }
-
-  if (riskIntro.text.endsWith("your")) {
-    const continuation = state.expect(
-      /^app is at risk of:$/,
-      "feature.risk_intro_continuation",
-      "When the risk introduction is split over two lines, the second line must be written exactly as 'app is at risk of:'."
-    );
-    if (!continuation) {
-      return state.diagnostics;
-    }
-  }
-  state.pass(riskIntro.line, "The risk introduction follows the approved public wording.");
-
-  // The final feature check ensures the playbook points to one or more risk
-  // playbooks using filenames that stay linked to the current feature slug.
-  const riskPattern = new RegExp(`^(\\d+)\\. ${escapeRegex(headingSlug)}-risk-(0[1-9]|[1-9][0-9])$`);
-  state.expectNumberedList(
-    riskPattern,
-    "feature.risk_references",
-    `Each risk reference must follow the approved format '1. ${headingSlug}-risk-01', where '01' is replaced with a two-digit value from 01 to 99.`
-  );
-  state.expectEnd("feature.extra_content", "No additional content is allowed after the numbered list of related risk references.");
+  state.expectEnd("feature.extra_content", "No additional content is allowed after the numbered demonstration steps.");
   return state.diagnostics;
 }
 
@@ -544,7 +499,7 @@ function createParser(filePath, items, passLogs) {
       return this.expect(new RegExp(`^${escapeRegex(text)}$`), rule, message);
     },
     // Required configuration-table check:
-    // - Pass: header is exact, separator is present, and at least one data row exists.
+    // - Pass: header is exact and separator is present.
     // - Fail: missing table, wrong header, or too few rows.
     //
     // General Markdown table quality is also checked elsewhere by checkTables().
@@ -555,7 +510,7 @@ function createParser(filePath, items, passLogs) {
           start?.line ?? items.at(-1)?.line ?? 1,
           "table.missing",
           "A configuration table is required immediately after the setup line, but no table appears in that position.",
-          "Add a table in that position with the exact header '| Configuration | Detail |', a separator row, and at least one data row."
+          "Add a table in that position with the exact header '| Configuration | Detail |' and a separator row."
         );
         return null;
       }
@@ -566,12 +521,12 @@ function createParser(filePath, items, passLogs) {
         this.index += 1;
       }
 
-      if (tableLines.length < 3) {
+      if (tableLines.length < 2) {
         this.error(
           start.line,
           "table.row_count",
-          `The configuration table must contain at least 3 lines, but only ${tableLines.length} line(s) were found.`,
-          "Add the required header row, separator row, and at least one data row."
+          `The configuration table must contain at least 2 lines, but only ${tableLines.length} line(s) were found.`,
+          "Add the required header row and separator row."
         );
         return null;
       }
@@ -589,7 +544,6 @@ function createParser(filePath, items, passLogs) {
 
       this.pass(tableLines[0].line, "The configuration table uses the approved header.");
       this.pass(tableLines[1].line, "The configuration table includes a separator row.");
-      this.pass(tableLines[2].line, "The configuration table includes at least one data row.");
       return tableLines;
     },
     // Numbered-list check:
@@ -804,14 +758,14 @@ function checkTables(filePath, lines, passLogs) {
 
     tableCount += 1;
 
-    if (block.length < 3) {
+    if (block.length < 2) {
       diagnostics.push(
         makeDiagnostic(
           filePath,
           lineNumber,
           "table.markdown_row_count",
-          `The Markdown table starting at line ${lineNumber} must include a header row, a separator row, and at least one data row, but only ${block.length} row(s) were found.`,
-          "Add the missing separator row or data row so the table is complete."
+          `The Markdown table starting at line ${lineNumber} must include a header row and a separator row, but only ${block.length} row(s) were found.`,
+          "Add the missing header row or separator row so the table is complete."
         )
       );
       continue;

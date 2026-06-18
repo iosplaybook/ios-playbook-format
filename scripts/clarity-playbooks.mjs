@@ -84,8 +84,6 @@ export async function main() {
     totalFindings += review.findings.length;
     for (const finding of review.findings) {
       emitGitHubWarning(finding);
-      console.log(`${finding.file}:${finding.line} WARN [${finding.category}] ${finding.message}`);
-      console.log(`  Suggested rewrite: ${finding.suggestedRewrite}`);
     }
   }
 
@@ -98,6 +96,7 @@ async function reviewFileWithGitHubModels(filePath) {
   const raw = fs.readFileSync(filePath, "utf8");
   const lines = raw.split(/\r?\n/);
   const type = inferTypeFromFilename(path.basename(filePath, ".md")) ?? "unknown";
+  const clarityContent = extractClarityContent(raw);
 
   const requestBody = {
     model: MODEL_NAME,
@@ -109,7 +108,7 @@ async function reviewFileWithGitHubModels(filePath) {
       },
       {
         role: "user",
-        content: buildUserPrompt(filePath, type, raw),
+        content: buildUserPrompt(filePath, type, clarityContent),
       },
     ],
   };
@@ -179,6 +178,8 @@ function buildSystemPrompt() {
 function buildUserPrompt(filePath, type, raw) {
   return [
     "Review this playbook for clarity using the rubric below.",
+    "Exclude template headings, section headings, filenames, and Markdown tables from your review.",
+    "Focus only on the remaining prose and numbered instruction lines.",
     `Rubric: ${CLARITY_RUBRIC.join("; ")}.`,
     `File: ${filePath}`,
     `Playbook type: ${type}`,
@@ -186,6 +187,54 @@ function buildUserPrompt(filePath, type, raw) {
     "Playbook content:",
     raw,
   ].join("\n");
+}
+
+export function extractClarityContent(raw) {
+  const lines = raw.split(/\r?\n/);
+  const filteredLines = [];
+  let insideTable = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+
+    if (trimmed.startsWith("|")) {
+      insideTable = true;
+      continue;
+    }
+
+    if (insideTable && !trimmed.startsWith("|")) {
+      insideTable = false;
+    }
+
+    if (insideTable) {
+      continue;
+    }
+
+    if (isIgnoredHeading(trimmed)) {
+      continue;
+    }
+
+    if (trimmed.length === 0) {
+      continue;
+    }
+
+    filteredLines.push(line);
+  }
+
+  return filteredLines.join("\n");
+}
+
+function isIgnoredHeading(trimmed) {
+  if (
+    trimmed === "### Description" ||
+    trimmed === "### Additional context" ||
+    trimmed === "### Demonstration" ||
+    trimmed === "### Goal"
+  ) {
+    return true;
+  }
+
+  return /^## platform-feature-(0[1-9]|[1-9][0-9])(?:-risk-(0[1-9]|[1-9][0-9]))?(?:-control-(0[1-9]|[1-9][0-9]))?$/.test(trimmed);
 }
 
 export function normalizeModelResponse(rawContent, filePath, lineCount) {

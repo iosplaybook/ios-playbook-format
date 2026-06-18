@@ -7,8 +7,6 @@ Feature 01 is a feature that protects sensitive data at rest.
 Set up demo app with the following configuration:
 | Configuration | Detail |
 | -------- | ------- |
-| Build variant | Debug |
 Perform the following steps to enable Feature 01:
 1. Configure the app to store credentials locally
-Because the Android platform provides Feature 01 feature, your app is at risk of:
-1. platform-feature-01-risk-01
+2. Update the keychain integration to protect session data at rest

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { normalizeModelResponse } from "./clarity-playbooks.mjs";
+import { extractClarityContent, normalizeModelResponse } from "./clarity-playbooks.mjs";
 
 test("normalizeModelResponse accepts a valid advisory finding", () => {
   const result = normalizeModelResponse(
@@ -70,4 +70,26 @@ test("normalizeModelResponse rejects out-of-range line numbers", () => {
 
   assert.equal(result.findings.length, 0);
   assert.match(result.error, /line value 40/i);
+});
+
+test("extractClarityContent excludes template headings and Markdown tables", () => {
+  const content = extractClarityContent(`## platform-feature-01
+### Description
+The Android platform provides Secure Storage feature.
+### Additional context
+Secure Storage is a feature that protects application secrets stored on the device by encrypting them at rest.
+### Demonstration
+Set up demo app with the following configuration:
+| Configuration | Detail |
+| -------- | ------- |
+| Build variant | Debug |
+Perform the following steps to enable Secure Storage:
+1. Update the app to do the needed thing for security`);
+
+  assert.doesNotMatch(content, /^## /m);
+  assert.doesNotMatch(content, /^### /m);
+  assert.doesNotMatch(content, /^\|/m);
+  assert.match(content, /The Android platform provides Secure Storage feature\./);
+  assert.match(content, /Set up demo app with the following configuration:/);
+  assert.match(content, /Perform the following steps to enable Secure Storage:/);
 });
