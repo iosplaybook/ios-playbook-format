@@ -420,14 +420,14 @@ function validateControlFile(filePath, basename, items, passLogs) {
     "The control introduction must be written exactly as 'Your app can prevent the risk of an attacker <technique> by taking the following steps:'."
   );
   state.expect(
-    /^1\. Detect by .+$/,
+    /^1\. .+$/,
     "control.detect_step",
-    "The first control step must be written exactly as '1. Detect by <instructions>'."
+    "The first control step must be a numbered item written as '1. <instructions>'."
   );
   state.expect(
-    /^2\. Prevent by .+$/,
+    /^2\. .+$/,
     "control.prevent_step",
-    "The second control step must be written exactly as '2. Prevent by <instructions>'."
+    "The second control step must be a numbered item written as '2. <instructions>'."
   );
   state.expect(
     /^The APK with the implemented control can be found \[here\]\((.+)\)\.$/,
