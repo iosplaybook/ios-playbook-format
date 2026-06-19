@@ -436,10 +436,16 @@ function validateControlFile(filePath, basename, items, passLogs) {
     "Each control step must be a numbered item written as '1. <instructions>'."
   );
   state.find(
-    /^The APK with the implemented control can be found \[here\]\((.+)\)\.$/,
-    "control.apk_link",
-    "The APK line must be written exactly as 'The APK with the implemented control can be found [here](path).' and must appear after the numbered control steps."
+    /^### References$/,
+    "control.references_heading",
+    "The references heading must be written exactly as '### References' and must appear after the numbered control steps."
   );
+  state.find(
+    /^The IPA with the implemented control can be found \[here\]\((.+)\)\.$/,
+    "control.ipa_reference",
+    "The final reference line must be written exactly as 'The IPA with the implemented control can be found [here](path).'."
+  );
+  state.expectEnd("control.extra_content", "No additional content is allowed after the references section.");
   return state.diagnostics;
 }
 

@@ -259,7 +259,9 @@ test("control playbooks accept multiple numbered steps", () => {
       "",
       "3. Prevent static extraction by obfuscating generated secret material.",
       "",
-      "The APK with the implemented control can be found [here](https://example.com/control.apk).",
+      "### References",
+      "",
+      "The IPA with the implemented control can be found [here](https://example.com/control.ipa).",
       "",
     ].join("\n"),
     "utf8"
@@ -273,7 +275,8 @@ test("control playbooks accept multiple numbered steps", () => {
   assert.match(result.stdout, /Numbered list item 1 passed the 'control\.steps'/);
   assert.match(result.stdout, /Numbered list item 2 passed the 'control\.steps'/);
   assert.match(result.stdout, /Numbered list item 3 passed the 'control\.steps'/);
-  assert.match(result.stdout, /control\.apk_link/);
+  assert.match(result.stdout, /control\.references_heading/);
+  assert.match(result.stdout, /control\.ipa_reference/);
 });
 
 test("risk playbooks allow additional content after the numbered demonstration steps", () => {
