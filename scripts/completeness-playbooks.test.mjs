@@ -59,8 +59,8 @@ test("normalizeModelResponse accepts a valid incorrect-claim finding", () => {
       severity: "advisory",
       category: "step_review",
       role: "iOS software engineer",
-      understanding: "The sequence appears to guide the reader through securing sensitive data in the app workflow.",
-      improvement: "Clarify what storage mechanism is used so the reader knows exactly how the secret is protected.",
+      understanding: "The sequence appears to guide the reader through securing sensitive data in the app workflow",
+      improvement: "Clarify what storage mechanism is used so the reader knows exactly how the secret is protected",
     },
   ]);
 });
@@ -90,8 +90,40 @@ test("normalizeModelResponse accepts a second valid step review finding", () => 
       severity: "advisory",
       category: "step_review",
       role: "iOS software engineer",
-      understanding: "The sequence appears to configure the environment needed to run the demonstration safely.",
-      improvement: "State the missing prerequisite explicitly so the reader can reproduce the step reliably.",
+      understanding: "The sequence appears to configure the environment needed to run the demonstration safely",
+      improvement: "State the missing prerequisite explicitly so the reader can reproduce the step reliably",
+    },
+  ]);
+});
+
+test("normalizeModelResponse strips duplicated framing from model output", () => {
+  const result = normalizeModelResponse(
+    JSON.stringify({
+      summary: "One flow needs a better detail.",
+      overallUnderstanding:
+        "As a software engineer, I think the goal of this sequence is to retrieve and analyze an iOS app package from Apple's servers.",
+      findings: [
+        {
+          line: 6,
+          category: "step_review",
+          improvement: "I suggest providing the exact path to the Apple Configurator temporary cache directory.",
+        },
+      ],
+    }),
+    "playbooks/platform-feature-01.md",
+    12
+  );
+
+  assert.equal(result.error, null);
+  assert.deepEqual(result.findings, [
+    {
+      file: "playbooks/platform-feature-01.md",
+      line: 6,
+      severity: "advisory",
+      category: "step_review",
+      role: "iOS software engineer",
+      understanding: "to retrieve and analyze an iOS app package from Apple's servers",
+      improvement: "providing the exact path to the Apple Configurator temporary cache directory",
     },
   ]);
 });

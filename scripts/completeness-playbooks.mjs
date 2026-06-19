@@ -409,8 +409,8 @@ function normalizeFinding(finding, filePath, lineCount, overallUnderstanding, ro
       severity: "advisory",
       category: finding.category,
       role,
-      understanding: overallUnderstanding.trim(),
-      improvement: finding.improvement.trim(),
+      understanding: stripUnderstandingLeadIn(overallUnderstanding.trim()),
+      improvement: stripImprovementLeadIn(finding.improvement.trim()),
     },
   };
 }
@@ -429,6 +429,26 @@ function getReviewerRole(type) {
   }
 
   return "iOS engineer";
+}
+
+function stripUnderstandingLeadIn(value) {
+  return value
+    .replace(/^As an? [^,]+,\s*I think the goal of this sequence is\s*/i, "")
+    .replace(/^I think the goal of this sequence is\s*/i, "")
+    .trim()
+    .replace(/\.+$/g, "");
+}
+
+function stripImprovementLeadIn(value) {
+  return value
+    .replace(/^As an? [^,]+,\s*I suggest\s*/i, "")
+    .replace(/^I suggest\s*/i, "")
+    .trim()
+    .replace(/\.+$/g, "");
+}
+
+function roleArticle(role) {
+  return /^[aeiou]/i.test(role) ? "an" : "a";
 }
 
 function extractAssistantContent(payload) {
@@ -517,7 +537,7 @@ function readPathsFromStdin() {
 
 function emitGitHubWarning({ file, line, severity, category, role, understanding, improvement }) {
   const escapedMessage = escapeWorkflowValue(
-    `[${severity}/${category}] Understanding: As a ${role}, I think the goal of this sequence is ${understanding}. Improvements: As a ${role}, I suggest ${improvement} to help me follow the sequence without friction.`
+    `[${severity}/${category}] Understanding: As ${roleArticle(role)} ${role}, I think the goal of this sequence is ${understanding}. Improvements: As ${roleArticle(role)} ${role}, I suggest ${improvement} to help me follow the sequence without friction.`
   );
   console.log(`::warning file=${file},line=${line},title=Playbook technical completeness::${escapedMessage}`);
 }
