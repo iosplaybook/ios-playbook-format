@@ -284,10 +284,10 @@ function validateFeatureFile(filePath, basename, items, passLogs) {
     return state.diagnostics;
   }
 
-  const risksIntro = state.expect(
+  const risksIntro = state.find(
     /^Because the iOS platform provides (.+) feature, your app is at risk of:$/,
     "feature.related_risks_intro",
-    "The related risks introduction must be written exactly as 'Because the iOS platform provides <feature_name> feature, your app is at risk of:'."
+    "The related risks introduction must be written exactly as 'Because the iOS platform provides <feature_name> feature, your app is at risk of:' and must appear after the numbered demonstration steps."
   );
   if (!risksIntro) {
     return state.diagnostics;
@@ -304,10 +304,27 @@ function validateFeatureFile(filePath, basename, items, passLogs) {
   }
   state.pass(risksIntro.line, "The related risks introduction uses the same feature name as the description.");
 
-  state.expectNumberedList(
-    /^(\d+)\. platform-feature-(0[1-9]|[1-9][0-9])-risk-(0[1-9]|[1-9][0-9])$/,
+  state.expectBulletList(
+    /^- \[(platform-feature-(0[1-9]|[1-9][0-9])-risk-(0[1-9]|[1-9][0-9]))\]\((platform-feature-(0[1-9]|[1-9][0-9])-risk-(0[1-9]|[1-9][0-9])\.md)\)$/,
     "feature.related_risks_list",
-    "Each related risk entry must follow the approved format '1. platform-feature-01-risk-01'."
+    "Each related risk entry must follow the approved format '- [platform-feature-01-risk-01](platform-feature-01-risk-01.md)'.",
+    ({ item, match, parser }) => {
+      const riskId = match[1];
+      const linkedFile = match[4];
+      const expectedFile = `${riskId}.md`;
+
+      if (linkedFile !== expectedFile) {
+        parser.error(
+          item.line,
+          "feature.related_risks_link_match",
+          `The related risk entry labels this risk as '${riskId}', but links to '${linkedFile}'. The link target must match the risk identifier exactly.`,
+          `Rewrite the link as '- [${riskId}](${expectedFile})'.`
+        );
+        return false;
+      }
+
+      return true;
+    }
   );
   state.expectEnd("feature.extra_content", "No additional content is allowed after the related risks list.");
   return state.diagnostics;
@@ -519,6 +536,32 @@ function createParser(filePath, items, passLogs) {
       this.pass(item.line, `The required check '${rule}' passed at this line.`);
       return { ...item, match };
     },
+    // Look-ahead matcher:
+    // - Pass: scans forward until a matching meaningful line is found.
+    // - Fail: records a blocking diagnostic if the required line never appears.
+    //
+    // This is used for cases where supporting content may appear between two
+    // required sections, but the required line must still appear later in the
+    // document.
+    find(pattern, rule, message) {
+      for (let offset = this.index; offset < items.length; offset += 1) {
+        const item = items[offset];
+        const match = item.text.match(pattern);
+        if (match) {
+          this.index = offset + 1;
+          this.pass(item.line, `The required check '${rule}' passed at this line.`);
+          return { ...item, match };
+        }
+      }
+
+      this.error(
+        items.at(-1)?.line ?? 1,
+        rule,
+        `${message} The document ends before that required line appears.`,
+        "Add the missing line after the numbered demonstration steps so the document matches the approved feature format."
+      );
+      return null;
+    },
     // Variant matcher for cases where the public template permits one of a
     // small number of exact phrasings, such as a sentence split over two lines.
     expectOneOf(patterns, rule, message) {
@@ -621,6 +664,46 @@ function createParser(filePath, items, passLogs) {
 
         count += 1;
         this.pass(item.line, `Numbered list item ${count} passed the '${rule}' review check.`);
+        this.index += 1;
+      }
+
+      return true;
+    },
+    expectBulletList(itemPattern, rule, message, validateItem = null) {
+      const start = this.current();
+      if (!start || !/^- /.test(start.text)) {
+        this.error(
+          start?.line ?? items.at(-1)?.line ?? 1,
+          rule,
+          `${message} A bullet list item was required at this point, but none was found.`,
+          "Add at least one bullet item that follows the required template."
+        );
+        return null;
+      }
+
+      let count = 0;
+      while (this.current() && /^- /.test(this.current().text)) {
+        const item = this.current();
+        const match = item.text.match(itemPattern);
+        if (!match) {
+          this.error(
+            item.line,
+            rule,
+            `${message} The review found '${item.text}' on this line instead.`,
+            `Rewrite line ${item.line} so it follows the required bullet-list format.`
+          );
+          return null;
+        }
+
+        if (validateItem) {
+          const isValid = validateItem({ item, match, parser: this });
+          if (!isValid) {
+            return null;
+          }
+        }
+
+        count += 1;
+        this.pass(item.line, `Bullet list item ${count} passed the '${rule}' review check.`);
         this.index += 1;
       }
 
