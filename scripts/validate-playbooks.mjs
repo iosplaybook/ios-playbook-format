@@ -10,13 +10,10 @@ const useStdin = args.includes("--stdin");
 // 2. Apply both general quality checks and type-specific structure checks.
 // 3. Publish GitHub notices for passes and GitHub errors for failures.
 //
-// This script currently has two review outcomes:
+// This script currently has three review outcomes:
 // - Pass: reported as a GitHub notice and a console "PASS" line.
+// - Warn: reported as a GitHub warning and a console "WARN" line.
 // - Fail: reported as a GitHub error and a console "FAIL" line.
-//
-// There is no separate warning outcome today. If a future rule should be
-// advisory rather than blocking, that would be a good place to add a warning
-// pathway without changing the existing pass/fail contract.
 async function main() {
   const filePaths = useStdin ? await readPathsFromStdin() : walkMarkdownFiles("playbooks");
 
@@ -26,6 +23,7 @@ async function main() {
   }
 
   const diagnostics = [];
+  const warnings = [];
   const passLogs = [];
 
   // Each file is reviewed independently so the workflow can report all known
@@ -52,6 +50,7 @@ async function main() {
 
     const result = validateFile(filePath);
     diagnostics.push(...result.diagnostics);
+    warnings.push(...result.warnings);
     passLogs.push(...result.passLogs);
   }
 
@@ -62,8 +61,18 @@ async function main() {
     console.log(`${passLog.file}:${passLog.line} PASS Review check passed: ${passLog.message}`);
   }
 
+  for (const warning of warnings) {
+    emitGitHubWarning(warning);
+    console.warn(`${warning.file}:${warning.line} WARN [${warning.rule}] Review warning: ${warning.message}`);
+    if (warning.howToFix) {
+      console.warn(`  Suggested next step: ${warning.howToFix}`);
+    }
+  }
+
   if (diagnostics.length === 0) {
-    console.log(`The review completed successfully. ${filePaths.length} playbook file(s) were examined and no blocking issues were found.`);
+    console.log(
+      `The review completed successfully. ${filePaths.length} playbook file(s) were examined, ${warnings.length} warning(s) were reported, and no blocking issues were found.`
+    );
     return;
   }
 
@@ -84,6 +93,7 @@ function validateFile(filePath) {
   const raw = fs.readFileSync(filePath, "utf8");
   const lines = raw.split(/\r?\n/);
   const diagnostics = [];
+  const warnings = [];
   const passLogs = [];
 
   // These are broad hygiene checks that apply to every playbook, regardless of
@@ -93,11 +103,11 @@ function validateFile(filePath) {
   // yet ready for a clean, publishable review state.
   diagnostics.push(...checkTrailingWhitespace(filePath, lines, passLogs));
   diagnostics.push(...checkUnreplacedPlaceholders(filePath, lines, passLogs));
-  diagnostics.push(...checkInternalLinks(filePath, lines, passLogs));
+  warnings.push(...checkInternalLinks(filePath, lines, passLogs));
   diagnostics.push(...checkTables(filePath, lines, passLogs));
   diagnostics.push(...validateStructure(filePath, lines, passLogs));
 
-  return { diagnostics, passLogs };
+  return { diagnostics, warnings, passLogs };
 }
 
 function validateStructure(filePath, lines, passLogs) {
@@ -688,7 +698,7 @@ function checkUnreplacedPlaceholders(filePath, lines, passLogs) {
 }
 
 function checkInternalLinks(filePath, lines, passLogs) {
-  const diagnostics = [];
+  const warnings = [];
   const directory = path.dirname(filePath);
   const linkPattern = /\[[^\]]+\]\(([^)]+)\)/g;
   let linkCount = 0;
@@ -709,8 +719,8 @@ function checkInternalLinks(filePath, lines, passLogs) {
       const resolvedPath = path.resolve(directory, relativePath);
 
       if (!fs.existsSync(resolvedPath)) {
-        diagnostics.push(
-          makeDiagnostic(
+        warnings.push(
+          makeWarning(
             filePath,
             index + 1,
             "link.internal_exists",
@@ -730,7 +740,7 @@ function checkInternalLinks(filePath, lines, passLogs) {
     passLogs.push(makePassLog(filePath, 1, "No internal repository links were found in this document, so no local link validation was required."));
   }
 
-  return diagnostics;
+  return warnings;
 }
 
 function checkTables(filePath, lines, passLogs) {
@@ -884,6 +894,11 @@ function makeDiagnostic(file, line, rule, message, howToFix = "") {
   return { file, line, rule, message, howToFix };
 }
 
+function makeWarning(file, line, rule, message, howToFix = "") {
+  // Warnings represent advisory issues that should not fail the review.
+  return { file, line, rule, message, howToFix };
+}
+
 function makePassLog(file, line, message) {
   // Pass logs represent successful checks and are emitted as GitHub notices.
   return { file, line, message };
@@ -894,6 +909,13 @@ function emitGitHubError({ file, line, rule, message }) {
   // workflow fail and point reviewers directly to the affected line.
   const escapedMessage = escapeWorkflowValue(`[${rule}] ${message}`);
   console.log(`::error file=${file},line=${line},title=Playbook validation::${escapedMessage}`);
+}
+
+function emitGitHubWarning({ file, line, rule, message }) {
+  // GitHub warnings are used for advisory issues that deserve attention
+  // without blocking the document from moving forward.
+  const escapedMessage = escapeWorkflowValue(`[${rule}] ${message}`);
+  console.log(`::warning file=${file},line=${line},title=Playbook validation::${escapedMessage}`);
 }
 
 function emitGitHubNotice({ file, line, message }) {
