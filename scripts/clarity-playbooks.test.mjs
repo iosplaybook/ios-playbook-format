@@ -29,7 +29,8 @@ test("buildClarityPrompts gives control-specific guidance", () => {
 
   assert.match(prompts.system, /reviewing a control playbook/i);
   assert.match(prompts.system, /preserve the original step intent/i);
-  assert.match(prompts.system, /Do not rewrite control steps into 'Detect \.\.\.' or 'Prevent \.\.\.'/i);
+  assert.match(prompts.system, /begin with a clear action verb/i);
+  assert.match(prompts.system, /Open X by doing Y/i);
   assert.match(prompts.user, /preserve the original intent/i);
   assert.doesNotMatch(prompts.system, /keep it to 1 to 3 words/i);
   assert.doesNotMatch(prompts.user, /Open X to do Y/i);
