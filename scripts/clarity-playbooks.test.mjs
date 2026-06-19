@@ -1,7 +1,37 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { extractClarityContent, normalizeModelResponse } from "./clarity-playbooks.mjs";
+import { buildClarityPrompts, extractClarityContent, normalizeModelResponse } from "./clarity-playbooks.mjs";
+
+test("buildClarityPrompts gives feature-specific guidance", () => {
+  const prompts = buildClarityPrompts("playbooks/platform-feature-01.md", "feature", "3: demo");
+
+  assert.match(prompts.system, /reviewing a feature playbook/i);
+  assert.match(prompts.system, /keep it to 1 to 3 words/i);
+  assert.match(prompts.user, /Description uses a concise feature name/i);
+  assert.match(prompts.user, /Open X to do Y/i);
+  assert.doesNotMatch(prompts.system, /Detect <something> by <method>/i);
+});
+
+test("buildClarityPrompts gives risk-specific guidance", () => {
+  const prompts = buildClarityPrompts("playbooks/platform-feature-01-risk-01.md", "risk", "12: demo");
+
+  assert.match(prompts.system, /reviewing a risk playbook/i);
+  assert.match(prompts.system, /Open X to do Y/i);
+  assert.doesNotMatch(prompts.system, /keep it to 1 to 3 words/i);
+  assert.doesNotMatch(prompts.user, /Description uses a concise feature name/i);
+  assert.doesNotMatch(prompts.system, /Detect <something> by <method>/i);
+});
+
+test("buildClarityPrompts gives control-specific guidance", () => {
+  const prompts = buildClarityPrompts("playbooks/platform-feature-01-risk-01-control-01.md", "control", "3: demo");
+
+  assert.match(prompts.system, /reviewing a control playbook/i);
+  assert.match(prompts.system, /Detect <something> by <method>/i);
+  assert.match(prompts.user, /Detect X by Y/i);
+  assert.doesNotMatch(prompts.system, /keep it to 1 to 3 words/i);
+  assert.doesNotMatch(prompts.user, /Open X to do Y/i);
+});
 
 test("normalizeModelResponse accepts a valid advisory finding", () => {
   const result = normalizeModelResponse(
