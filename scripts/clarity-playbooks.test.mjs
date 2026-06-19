@@ -277,7 +277,7 @@ test("normalizeModelResponse rejects out-of-range line numbers", () => {
   assert.match(result.error, /line value 40/i);
 });
 
-test("extractClarityContent excludes template headings and Markdown tables", () => {
+test("extractClarityContent excludes template headings, fixed template lines, and Markdown tables", () => {
   const content = extractClarityContent(`## platform-feature-01
 ### Description
 The iOS platform provides Secure Storage feature.
@@ -295,7 +295,7 @@ Perform the following steps to enable Secure Storage:
   assert.doesNotMatch(content, /^### /m);
   assert.doesNotMatch(content, /^\|/m);
   assert.match(content, /^3: The iOS platform provides Secure Storage feature\.$/m);
-  assert.match(content, /^7: Set up demo app with the following configuration:$/m);
-  assert.match(content, /^11: Perform the following steps to enable Secure Storage:$/m);
+  assert.doesNotMatch(content, /^7: Set up demo app with the following configuration:$/m);
+  assert.doesNotMatch(content, /^11: Perform the following steps to enable Secure Storage:$/m);
   assert.match(content, /^12: 1\. Update the app to do the needed thing for security$/m);
 });

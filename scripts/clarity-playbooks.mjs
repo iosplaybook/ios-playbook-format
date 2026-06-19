@@ -321,6 +321,10 @@ export function extractClarityContent(raw) {
       continue;
     }
 
+    if (isIgnoredTemplateLine(trimmed)) {
+      continue;
+    }
+
     if (trimmed.length === 0) {
       continue;
     }
@@ -342,6 +346,17 @@ function isIgnoredHeading(trimmed) {
   }
 
   return /^## platform-feature-(0[1-9]|[1-9][0-9])(?:-risk-(0[1-9]|[1-9][0-9]))?(?:-control-(0[1-9]|[1-9][0-9]))?$/.test(trimmed);
+}
+
+function isIgnoredTemplateLine(trimmed) {
+  return (
+    /^Set up .+ with the following configuration:$/.test(trimmed) ||
+    /^Perform the following steps to enable .+:$/.test(trimmed) ||
+    /^Perform the following steps to demonstrate the risk of an attacker .+:$/.test(trimmed) ||
+    /^Your app can prevent the risk of an attacker .+ by taking the following steps:$/.test(trimmed) ||
+    /^Because the iOS platform provides .+ feature, your app is at risk of:$/.test(trimmed) ||
+    /^The APK with the implemented control can be found \[here\]\((.+)\)\.$/.test(trimmed)
+  );
 }
 
 export function normalizeModelResponse(rawContent, filePath, linesOrLineCount) {
