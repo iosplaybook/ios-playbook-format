@@ -8,32 +8,10 @@ const useStdin = args.includes("--stdin");
 const MODEL_NAME = process.env.GITHUB_MODELS_COMPLETENESS_MODEL || "openai/gpt-4o-mini";
 const MODELS_API_URL = "https://models.github.ai/inference/chat/completions";
 const MAX_FINDINGS_PER_FILE = 5;
-const MAX_COMPLETENESS_FINDINGS_PER_FILE = 2;
-const CORRECTNESS_CATEGORIES = new Set([
-  "platform_mismatch",
-  "incorrect_mechanism",
-  "unsupported_claim",
-  "security_overclaim",
-  "demo_inconsistency",
-  "missing_prerequisite",
-  "missing_constraint",
-  "missing_security_tradeoff",
-  "missing_platform_detail",
-  "missing_threat_assumption",
-]);
-const COMPLETENESS_CATEGORIES = new Set([
-  "missing_prerequisite",
-  "missing_constraint",
-  "missing_security_tradeoff",
-  "missing_platform_detail",
-  "missing_threat_assumption",
-]);
+const CORRECTNESS_CATEGORIES = new Set(["step_review", "demo_inconsistency"]);
 const COMPLETENESS_RUBRIC = [
-  "platform mismatches where iOS content describes non-iOS behavior or APIs",
-  "technically incorrect explanations of iOS or security mechanisms",
-  "unsupported or overstated security claims",
-  "missing prerequisites or assumptions needed to make a claim technically sound",
-  "demonstration steps that contradict the described feature, risk, or control",
+  "what the reviewer understands the numbered step is trying to do",
+  "what could be better in the numbered step so the technical action is clearer, more accurate, or easier to execute",
 ];
 
 export async function main() {
@@ -188,25 +166,24 @@ async function reviewFileWithGitHubModels(filePath) {
 
 function buildSystemPrompt() {
   return [
-    "You review iOS playbook Markdown files for technical completeness.",
-    "Do not check format compliance, section completeness, prose clarity, or style.",
-    "Report only high-confidence findings about technical gaps or likely incorrect technical claims.",
+    "You review iOS playbook Markdown files for numbered-step technical completeness only.",
+    "Do not review descriptions, goals, references, screenshots, formatting, section completeness, or prose style.",
+    "Review only the numbered instruction lines supplied by the user.",
     "When uncertain, return an empty findings array.",
-    "Do not speculate about implementation details that are not stated in the playbook.",
-    "Every finding must cite exact evidence copied from the playbook content supplied by the user.",
+    "Do not speculate about implementation details that are not stated in the numbered steps.",
     `Use only these categories: ${Array.from(CORRECTNESS_CATEGORIES).join(", ")}.`,
-    `Limit findings to at most ${MAX_FINDINGS_PER_FILE}, and include at most ${MAX_COMPLETENESS_FINDINGS_PER_FILE} findings from completeness categories.`,
+    `Limit findings to at most ${MAX_FINDINGS_PER_FILE}.`,
     "Return strict JSON only with this shape:",
-    '{"summary":"short summary","findings":[{"line":12,"category":"platform_mismatch","message":"short explanation","evidence":"quoted playbook text","whyItMatters":"why the issue matters","suggestedRewrite":"concrete replacement text"}]}',
-    "For missing-context findings, use 'suggestedAddition' instead of 'suggestedRewrite'.",
+    '{"summary":"short summary","findings":[{"line":12,"category":"step_review","understanding":"what the step appears to do","improvement":"what could be better"}]}',
     "Do not wrap the JSON in Markdown fences.",
   ].join("\n");
 }
 
 function buildUserPrompt(filePath, type, raw) {
   return [
-    "Review this playbook for technical completeness using the rubric below.",
-    "Ignore template headings and Markdown tables. Focus on substantive prose and numbered instruction lines.",
+    "Review this playbook's numbered steps using the rubric below.",
+    "Ignore all non-numbered lines. Focus only on the numbered instruction lines that remain in the supplied content.",
+    "For each finding, report only two things: your understanding of what the step is doing, and what could be better.",
     `Rubric: ${COMPLETENESS_RUBRIC.join("; ")}.`,
     `File: ${filePath}`,
     `Playbook type: ${type}`,
@@ -219,25 +196,15 @@ function buildUserPrompt(filePath, type, raw) {
 export function extractCompletenessContent(raw) {
   const lines = raw.split(/\r?\n/);
   const filteredLines = [];
-  let insideTable = false;
 
   for (const [index, line] of lines.entries()) {
     const trimmed = line.trim();
 
-    if (trimmed.startsWith("|")) {
-      insideTable = true;
-      continue;
-    }
-
-    if (insideTable && !trimmed.startsWith("|")) {
-      insideTable = false;
-    }
-
-    if (insideTable) {
-      continue;
-    }
-
     if (trimmed.length === 0 || isIgnoredHeading(trimmed)) {
+      continue;
+    }
+
+    if (!/^\d+\.\s+/.test(trimmed)) {
       continue;
     }
 
@@ -269,10 +236,8 @@ export function collectStaticCompletenessFindings(filePath, type, lines) {
       line: index + 1,
       severity: "advisory",
       category: "demo_inconsistency",
-      message: "This control step should start with 'Detect' or 'Prevent'.",
-      evidence: trimmed,
-      whyItMatters: "Using a consistent action verb makes control guidance easier to scan and compare across playbooks.",
-      suggestion: `Rewrite this step so it starts with 'Detect' or 'Prevent' while preserving the current meaning.`,
+      understanding: "This control step is intended to describe a control action, but it does not currently start with 'Detect' or 'Prevent'.",
+      improvement: "Rewrite this step so it starts with 'Detect' or 'Prevent' while preserving the current meaning.",
     });
   }
 
@@ -318,8 +283,6 @@ export function normalizeModelResponse(rawContent, filePath, lineCount) {
   }
 
   const findings = [];
-  let completenessFindings = 0;
-
   for (const [index, finding] of parsed.findings.entries()) {
     if (findings.length >= MAX_FINDINGS_PER_FILE) {
       break;
@@ -331,13 +294,6 @@ export function normalizeModelResponse(rawContent, filePath, lineCount) {
         findings: [],
         error: `The advisory technical completeness response contained an invalid finding at position ${index + 1}: ${normalized.error}`,
       };
-    }
-
-    if (COMPLETENESS_CATEGORIES.has(normalized.finding.category)) {
-      if (completenessFindings >= MAX_COMPLETENESS_FINDINGS_PER_FILE) {
-        continue;
-      }
-      completenessFindings += 1;
     }
 
     findings.push(normalized.finding);
@@ -365,27 +321,12 @@ function normalizeFinding(finding, filePath, lineCount) {
     };
   }
 
-  if (typeof finding.message !== "string" || finding.message.trim().length === 0) {
-    return { error: "Each finding must include a non-empty 'message' string." };
+  if (typeof finding.understanding !== "string" || finding.understanding.trim().length === 0) {
+    return { error: "Each finding must include a non-empty 'understanding' string." };
   }
 
-  if (typeof finding.evidence !== "string" || finding.evidence.trim().length === 0) {
-    return { error: "Each finding must include a non-empty 'evidence' string." };
-  }
-
-  if (typeof finding.whyItMatters !== "string" || finding.whyItMatters.trim().length === 0) {
-    return { error: "Each finding must include a non-empty 'whyItMatters' string." };
-  }
-
-  const suggestionField =
-    typeof finding.suggestedRewrite === "string" && finding.suggestedRewrite.trim().length > 0
-      ? finding.suggestedRewrite
-      : typeof finding.suggestedAddition === "string" && finding.suggestedAddition.trim().length > 0
-        ? finding.suggestedAddition
-        : null;
-
-  if (!suggestionField) {
-    return { error: "Each finding must include a non-empty 'suggestedRewrite' or 'suggestedAddition' string." };
+  if (typeof finding.improvement !== "string" || finding.improvement.trim().length === 0) {
+    return { error: "Each finding must include a non-empty 'improvement' string." };
   }
 
   return {
@@ -394,10 +335,8 @@ function normalizeFinding(finding, filePath, lineCount) {
       line: finding.line,
       severity: "advisory",
       category: finding.category,
-      message: finding.message.trim(),
-      evidence: finding.evidence.trim(),
-      whyItMatters: finding.whyItMatters.trim(),
-      suggestion: suggestionField.trim(),
+      understanding: finding.understanding.trim(),
+      improvement: finding.improvement.trim(),
     },
   };
 }
@@ -486,10 +425,8 @@ function readPathsFromStdin() {
   });
 }
 
-function emitGitHubWarning({ file, line, severity, category, message, evidence, whyItMatters, suggestion }) {
-  const escapedMessage = escapeWorkflowValue(
-    `[${severity}/${category}] ${message} Evidence: ${evidence} Why it matters: ${whyItMatters} Suggestion: ${suggestion}`
-  );
+function emitGitHubWarning({ file, line, severity, category, understanding, improvement }) {
+  const escapedMessage = escapeWorkflowValue(`[${severity}/${category}] Understanding: ${understanding} What can be better: ${improvement}`);
   console.log(`::warning file=${file},line=${line},title=Playbook technical completeness::${escapedMessage}`);
 }
 

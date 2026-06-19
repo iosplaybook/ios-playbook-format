@@ -6,15 +6,13 @@ import { collectStaticCompletenessFindings, extractCompletenessContent, normaliz
 test("normalizeModelResponse accepts a valid incorrect-claim finding", () => {
   const result = normalizeModelResponse(
     JSON.stringify({
-      summary: "One mechanism is described incorrectly.",
+      summary: "One step could be clearer.",
       findings: [
         {
           line: 6,
-          category: "incorrect_mechanism",
-          message: "The playbook says plaintext local storage protects secrets at rest, which is technically incorrect.",
-          evidence: "Feature 01 is a feature that protects sensitive data at rest.",
-          whyItMatters: "Readers could implement storage that does not provide the security property being claimed.",
-          suggestedRewrite: "Explain the actual iOS protection mechanism and how it safeguards stored secrets at rest.",
+          category: "step_review",
+          understanding: "This step appears to move sensitive data into protected storage.",
+          improvement: "Clarify what storage mechanism is used so the reader knows exactly how the secret is protected.",
         },
       ],
     }),
@@ -28,27 +26,23 @@ test("normalizeModelResponse accepts a valid incorrect-claim finding", () => {
       file: "playbooks/platform-feature-01.md",
       line: 6,
       severity: "advisory",
-      category: "incorrect_mechanism",
-      message: "The playbook says plaintext local storage protects secrets at rest, which is technically incorrect.",
-      evidence: "Feature 01 is a feature that protects sensitive data at rest.",
-      whyItMatters: "Readers could implement storage that does not provide the security property being claimed.",
-      suggestion: "Explain the actual iOS protection mechanism and how it safeguards stored secrets at rest.",
+      category: "step_review",
+      understanding: "This step appears to move sensitive data into protected storage.",
+      improvement: "Clarify what storage mechanism is used so the reader knows exactly how the secret is protected.",
     },
   ]);
 });
 
-test("normalizeModelResponse accepts a valid missing-context finding", () => {
+test("normalizeModelResponse accepts a second valid step review finding", () => {
   const result = normalizeModelResponse(
     JSON.stringify({
-      summary: "One key prerequisite is missing.",
+      summary: "One step needs a better explanation.",
       findings: [
         {
           line: 6,
-          category: "missing_prerequisite",
-          message: "The playbook does not explain what key-management assumption makes the storage claim valid.",
-          evidence: "Feature 01 is a feature that protects sensitive data at rest.",
-          whyItMatters: "Without the key-management assumption, the protection claim is technically incomplete.",
-          suggestedAddition: "Add a sentence explaining whether keys are hardware-backed, app-managed, or derived from user credentials.",
+          category: "step_review",
+          understanding: "This step appears to configure a prerequisite for the demonstration.",
+          improvement: "State the missing prerequisite explicitly so the reader can reproduce the step reliably.",
         },
       ],
     }),
@@ -62,11 +56,9 @@ test("normalizeModelResponse accepts a valid missing-context finding", () => {
       file: "playbooks/platform-feature-01.md",
       line: 6,
       severity: "advisory",
-      category: "missing_prerequisite",
-      message: "The playbook does not explain what key-management assumption makes the storage claim valid.",
-      evidence: "Feature 01 is a feature that protects sensitive data at rest.",
-      whyItMatters: "Without the key-management assumption, the protection claim is technically incomplete.",
-      suggestion: "Add a sentence explaining whether keys are hardware-backed, app-managed, or derived from user credentials.",
+      category: "step_review",
+      understanding: "This step appears to configure a prerequisite for the demonstration.",
+      improvement: "State the missing prerequisite explicitly so the reader can reproduce the step reliably.",
     },
   ]);
 });
@@ -124,18 +116,16 @@ test("normalizeModelResponse rejects out-of-range line numbers", () => {
   assert.match(result.error, /line value 40/i);
 });
 
-test("normalizeModelResponse rejects findings without evidence", () => {
+test("normalizeModelResponse rejects findings without understanding", () => {
   const result = normalizeModelResponse(
     JSON.stringify({
-      summary: "Missing evidence.",
+      summary: "Missing understanding.",
       findings: [
         {
           line: 6,
-          category: "unsupported_claim",
-          message: "The playbook makes a broad security claim without support.",
-          evidence: "",
-          whyItMatters: "Readers may trust a claim that has not been grounded in the described mechanism.",
-          suggestedRewrite: "Narrow the claim to what the mechanism actually guarantees.",
+          category: "step_review",
+          understanding: "",
+          improvement: "Explain what the step is meant to accomplish.",
         },
       ],
     }),
@@ -144,21 +134,19 @@ test("normalizeModelResponse rejects findings without evidence", () => {
   );
 
   assert.equal(result.findings.length, 0);
-  assert.match(result.error, /evidence/i);
+  assert.match(result.error, /understanding/i);
 });
 
-test("normalizeModelResponse rejects findings without whyItMatters", () => {
+test("normalizeModelResponse rejects findings without improvement", () => {
   const result = normalizeModelResponse(
     JSON.stringify({
-      summary: "Missing rationale.",
+      summary: "Missing improvement.",
       findings: [
         {
           line: 6,
-          category: "security_overclaim",
-          message: "The playbook overstates what the storage mechanism guarantees.",
-          evidence: "Feature 01 is a feature that protects sensitive data at rest.",
-          whyItMatters: "",
-          suggestedRewrite: "State the narrower security property that is actually guaranteed.",
+          category: "step_review",
+          understanding: "This step appears to secure the stored secret.",
+          improvement: "",
         },
       ],
     }),
@@ -167,32 +155,10 @@ test("normalizeModelResponse rejects findings without whyItMatters", () => {
   );
 
   assert.equal(result.findings.length, 0);
-  assert.match(result.error, /whyItMatters/i);
+  assert.match(result.error, /improvement/i);
 });
 
-test("normalizeModelResponse rejects findings without a suggestion field", () => {
-  const result = normalizeModelResponse(
-    JSON.stringify({
-      summary: "Missing suggestion.",
-      findings: [
-        {
-          line: 6,
-          category: "missing_constraint",
-          message: "The playbook does not state the environment constraint that makes the demo valid.",
-          evidence: "Set up demo app with the following configuration:",
-          whyItMatters: "Without the environment constraint, the demo setup may not reproduce the claimed behavior.",
-        },
-      ],
-    }),
-    "playbooks/platform-feature-01.md",
-    12
-  );
-
-  assert.equal(result.findings.length, 0);
-  assert.match(result.error, /suggestedRewrite' or 'suggestedAddition/i);
-});
-
-test("extractCompletenessContent preserves original line numbers and excludes headings and tables", () => {
+test("extractCompletenessContent preserves original line numbers and keeps only numbered steps", () => {
   const content = extractCompletenessContent(`## platform-feature-01
 ### Description
 The iOS platform provides Secure Storage feature.
@@ -209,9 +175,9 @@ Perform the following steps to enable Secure Storage:
   assert.doesNotMatch(content, /^## /m);
   assert.doesNotMatch(content, /^### /m);
   assert.doesNotMatch(content, /^\|/m);
-  assert.match(content, /^3: The iOS platform provides Secure Storage feature\.$/m);
-  assert.match(content, /^7: Set up demo app with the following configuration:$/m);
-  assert.match(content, /^11: Perform the following steps to enable Secure Storage:$/m);
+  assert.doesNotMatch(content, /^3: The iOS platform provides Secure Storage feature\.$/m);
+  assert.doesNotMatch(content, /^7: Set up demo app with the following configuration:$/m);
+  assert.doesNotMatch(content, /^11: Perform the following steps to enable Secure Storage:$/m);
   assert.match(content, /^12: 1\. Update the app to use encrypted storage to protect the secret at rest$/m);
 });
 
@@ -233,10 +199,8 @@ test("collectStaticCompletenessFindings warns when a control step does not start
       line: 3,
       severity: "advisory",
       category: "demo_inconsistency",
-      message: "This control step should start with 'Detect' or 'Prevent'.",
-      evidence: "1. Move hardcoded credentials into confidential storage",
-      whyItMatters: "Using a consistent action verb makes control guidance easier to scan and compare across playbooks.",
-      suggestion: "Rewrite this step so it starts with 'Detect' or 'Prevent' while preserving the current meaning.",
+      understanding: "This control step is intended to describe a control action, but it does not currently start with 'Detect' or 'Prevent'.",
+      improvement: "Rewrite this step so it starts with 'Detect' or 'Prevent' while preserving the current meaning.",
     },
   ]);
 });
