@@ -7,7 +7,8 @@ test("buildClarityPrompts gives feature-specific guidance", () => {
   const prompts = buildClarityPrompts("playbooks/platform-feature-01.md", "feature", "3: demo");
 
   assert.match(prompts.system, /reviewing a feature playbook/i);
-  assert.match(prompts.system, /keep it to 1 to 3 words/i);
+  assert.match(prompts.system, /ignore the trailing template word 'feature'/i);
+  assert.match(prompts.system, /keep any suggested feature name to 1 to 3 words/i);
   assert.match(prompts.user, /Description uses a concise feature name/i);
   assert.match(prompts.user, /Open X to do Y/i);
   assert.doesNotMatch(prompts.system, /Detect <something> by <method>/i);
@@ -58,6 +59,7 @@ test("normalizeModelResponse accepts a valid advisory finding", () => {
       severity: "advisory",
       category: "ambiguity",
       message: "The feature description uses a generic phrase that does not tell readers what is protected.",
+      sourceText: "",
       suggestedRewrite: "The iOS platform provides Secure Storage, a feature for encrypting app secrets stored on the device.",
     },
   ]);
@@ -88,6 +90,7 @@ test("normalizeModelResponse accepts a feature-name advisory finding", () => {
       severity: "advisory",
       category: "feature_name",
       message: "The feature name is longer than needed and would be easier to scan if it were shorter.",
+      sourceText: "",
       suggestedRewrite: "The iOS platform provides Secure Storage feature.",
     },
   ]);
@@ -118,6 +121,7 @@ test("normalizeModelResponse accepts an action-oriented demonstration finding", 
       severity: "advisory",
       category: "step_action",
       message: "The step does not begin with a strong action verb, which makes the instruction harder to follow.",
+      sourceText: "",
       suggestedRewrite: "1. Update the app configuration to enable Secure Storage for secrets saved on the device",
     },
   ]);
@@ -148,6 +152,7 @@ test("normalizeModelResponse accepts an action-oriented risk demonstration findi
       severity: "advisory",
       category: "step_action",
       message: "The risk demonstration step would be easier to follow if it started with a direct action verb and stated the objective.",
+      sourceText: "",
       suggestedRewrite: "1. Open the exported backup file to extract the stored secret",
     },
   ]);
@@ -184,6 +189,7 @@ test("normalizeModelResponse accepts a control-step rewrite finding", () => {
       severity: "advisory",
       category: "step_action",
       message: "The first control step would be easier to scan if it used a direct detect-by pattern.",
+      sourceText: "",
       suggestedRewrite: "1. Detect exported backup files by scanning the app data directory before processing secrets",
     },
     {
@@ -192,9 +198,44 @@ test("normalizeModelResponse accepts a control-step rewrite finding", () => {
       severity: "advisory",
       category: "step_action",
       message: "The second control step would be easier to scan if it used a direct prevent-by pattern.",
+      sourceText: "",
       suggestedRewrite: "2. Prevent secret extraction by encrypting backup data with a device-bound key",
     },
   ]);
+});
+
+test("normalizeModelResponse includes source text when original lines are available", () => {
+  const result = normalizeModelResponse(
+    JSON.stringify({
+      summary: "One step should be clearer.",
+      findings: [
+        {
+          line: 12,
+          category: "step_action",
+          message: "The step should start with a stronger action verb.",
+          suggestedRewrite: "1. Sign in to the same Apple ID on both devices to enable deployment",
+        },
+      ],
+    }),
+    "playbooks/platform-feature-01.md",
+    [
+      "## platform-feature-01",
+      "",
+      "### Description",
+      "",
+      "The iOS platform provides IPA Acquisition feature.",
+      "",
+      "### Demonstration",
+      "",
+      "Set up demo app with the following configuration:",
+      "",
+      "Perform the following steps to enable IPA Acquisition:",
+      "1. Use the same Apple ID on both devices for deployment",
+    ]
+  );
+
+  assert.equal(result.error, null);
+  assert.equal(result.findings[0].sourceText, "1. Use the same Apple ID on both devices for deployment");
 });
 
 test("normalizeModelResponse rejects malformed JSON", () => {

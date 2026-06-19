@@ -164,7 +164,7 @@ async function reviewFileWithGitHubModels(filePath) {
     };
   }
 
-  return normalizeModelResponse(content, filePath, lines.length);
+  return normalizeModelResponse(content, filePath, lines);
 }
 
 export function buildClarityPrompts(filePath, type, raw) {
@@ -209,7 +209,8 @@ function buildTypeSpecificSystemGuidance(type) {
     return [
       "You are reviewing a feature playbook.",
       "You may suggest a more concise feature name only when the current feature name is vague, awkward, or longer than 3 words.",
-      "When you suggest a feature name, keep it to 1 to 3 words and make sure it still matches the described capability.",
+      "When you suggest a feature name, evaluate only the '<feature_name>' portion of the Description sentence and ignore the trailing template word 'feature'.",
+      "Keep any suggested feature name to 1 to 3 words and make sure it still matches the described capability.",
       "For numbered demonstration steps, prefer rewrites that begin with a clear action verb and explain the objective in plain language.",
     ];
   }
@@ -343,7 +344,9 @@ function isIgnoredHeading(trimmed) {
   return /^## platform-feature-(0[1-9]|[1-9][0-9])(?:-risk-(0[1-9]|[1-9][0-9]))?(?:-control-(0[1-9]|[1-9][0-9]))?$/.test(trimmed);
 }
 
-export function normalizeModelResponse(rawContent, filePath, lineCount) {
+export function normalizeModelResponse(rawContent, filePath, linesOrLineCount) {
+  const lines = Array.isArray(linesOrLineCount) ? linesOrLineCount : null;
+  const lineCount = lines ? lines.length : linesOrLineCount;
   let parsed;
   try {
     parsed = JSON.parse(rawContent);
@@ -375,7 +378,7 @@ export function normalizeModelResponse(rawContent, filePath, lineCount) {
       break;
     }
 
-    const normalized = normalizeFinding(finding, filePath, lineCount);
+    const normalized = normalizeFinding(finding, filePath, lineCount, lines);
     if (normalized.error) {
       return {
         findings: [],
@@ -389,7 +392,7 @@ export function normalizeModelResponse(rawContent, filePath, lineCount) {
   return { findings, error: null };
 }
 
-function normalizeFinding(finding, filePath, lineCount) {
+function normalizeFinding(finding, filePath, lineCount, lines) {
   if (!finding || typeof finding !== "object" || Array.isArray(finding)) {
     return { error: "Each finding must be a JSON object." };
   }
@@ -423,6 +426,7 @@ function normalizeFinding(finding, filePath, lineCount) {
       severity: "advisory",
       category: finding.category,
       message: finding.message.trim(),
+      sourceText: lines ? (lines[finding.line - 1] ?? "").trim() : "",
       suggestedRewrite: finding.suggestedRewrite.trim(),
     },
   };
@@ -512,10 +516,9 @@ function readPathsFromStdin() {
   });
 }
 
-function emitGitHubWarning({ file, line, severity, category, message, suggestedRewrite }) {
-  const escapedMessage = escapeWorkflowValue(
-    `[${severity}/${category}] ${message} Suggested rewrite: ${suggestedRewrite}`
-  );
+function emitGitHubWarning({ file, line, severity, category, message, sourceText, suggestedRewrite }) {
+  const sourceSegment = sourceText ? ` Source text: ${sourceText}` : "";
+  const escapedMessage = escapeWorkflowValue(`[${severity}/${category}] ${message}${sourceSegment} Suggested rewrite: ${suggestedRewrite}`);
   console.log(`::warning file=${file},line=${line},title=Playbook clarity::${escapedMessage}`);
 }
 
