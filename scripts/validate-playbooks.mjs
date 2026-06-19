@@ -280,7 +280,36 @@ function validateFeatureFile(filePath, basename, items, passLogs) {
     "feature.demo_steps",
     "Each demonstration step must follow the approved format '1. <action_verb> to <objective>'."
   );
-  state.expectEnd("feature.extra_content", "No additional content is allowed after the numbered demonstration steps.");
+  if (state.diagnostics.length > 0) {
+    return state.diagnostics;
+  }
+
+  const risksIntro = state.expect(
+    /^Because the iOS platform provides (.+) feature, your app is at risk of:$/,
+    "feature.related_risks_intro",
+    "The related risks introduction must be written exactly as 'Because the iOS platform provides <feature_name> feature, your app is at risk of:'."
+  );
+  if (!risksIntro) {
+    return state.diagnostics;
+  }
+
+  if (risksIntro.match[1] !== featureName) {
+    state.error(
+      risksIntro.line,
+      "feature.related_risks_feature_name",
+      `The related risks section names the feature as '${risksIntro.match[1]}', but the description section names it as '${featureName}'. The same feature name must be used throughout the document.`,
+      `Rewrite the line as 'Because the iOS platform provides ${featureName} feature, your app is at risk of:'.`
+    );
+    return state.diagnostics;
+  }
+  state.pass(risksIntro.line, "The related risks introduction uses the same feature name as the description.");
+
+  state.expectNumberedList(
+    /^(\d+)\. platform-feature-(0[1-9]|[1-9][0-9])-risk-(0[1-9]|[1-9][0-9])$/,
+    "feature.related_risks_list",
+    "Each related risk entry must follow the approved format '1. platform-feature-01-risk-01'."
+  );
+  state.expectEnd("feature.extra_content", "No additional content is allowed after the related risks list.");
   return state.diagnostics;
 }
 
