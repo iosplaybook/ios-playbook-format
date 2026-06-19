@@ -219,7 +219,8 @@ function buildTypeSpecificSystemGuidance(type) {
     return [
       "You are reviewing a risk playbook.",
       "For numbered demonstration steps, prefer rewrites that begin with a clear action verb and explain the objective in plain language.",
-      "Favor consistent step patterns such as 'Open X to do Y' when that improves readability.",
+      "Preserve the original step intent. Do not suggest rewrites that change the meaning of a step.",
+      "Favor consistent patterns such as 'Open X by doing Y' when that improves readability.",
     ];
   }
 
@@ -246,7 +247,7 @@ function buildTypeSpecificUserGuidance(type) {
 
   if (type === "risk") {
     return [
-      "Pay special attention to whether each numbered Demonstration step starts with a clear action verb and follows a consistent pattern such as 'Open X to do Y'.",
+      "Pay special attention to whether each numbered Demonstration step starts with a clear action verb, preserves the original intent, and follows a consistent pattern such as '<action verb> <something> by <method>' or 'Open X to do Y'.",
     ];
   }
 

@@ -19,6 +19,8 @@ test("buildClarityPrompts gives risk-specific guidance", () => {
 
   assert.match(prompts.system, /reviewing a risk playbook/i);
   assert.match(prompts.system, /Open X to do Y/i);
+  assert.match(prompts.system, /Do not rewrite risk demonstration steps into 'Detect \.\.\.' or 'Prevent \.\.\.'/i);
+  assert.match(prompts.user, /preserves the original intent/i);
   assert.doesNotMatch(prompts.system, /keep it to 1 to 3 words/i);
   assert.doesNotMatch(prompts.user, /Description uses a concise feature name/i);
   assert.doesNotMatch(prompts.system, /Detect <something> by <method>/i);
