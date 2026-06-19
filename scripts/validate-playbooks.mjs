@@ -11,7 +11,7 @@ const useStdin = args.includes("--stdin");
 // 3. Publish GitHub notices for passes and GitHub errors for failures.
 //
 // This script currently has three review outcomes:
-// - Pass: reported as a GitHub notice and a console "PASS" line.
+// - Pass: reported as a plain console log line with a "[PASS]" prefix.
 // - Warn: reported as a GitHub warning and a console "WARN" line.
 // - Fail: reported as a GitHub error and a console "FAIL" line.
 async function main() {
@@ -54,11 +54,10 @@ async function main() {
     passLogs.push(...result.passLogs);
   }
 
-  // Passing checks are surfaced as notices so maintainers and reviewers can
-  // understand what the validator has already confirmed successfully.
+  // Passing checks are kept as plain logs so the workflow output remains
+  // readable without turning successful checks into GitHub annotations.
   for (const passLog of passLogs) {
-    emitGitHubNotice(passLog);
-    console.log(`${passLog.file}:${passLog.line} PASS Review check passed: ${passLog.message}`);
+    console.log(`[PASS] ${passLog.message}`);
   }
 
   for (const warning of warnings) {
@@ -913,7 +912,7 @@ function makeWarning(file, line, rule, message, howToFix = "") {
 }
 
 function makePassLog(file, line, message) {
-  // Pass logs represent successful checks and are emitted as GitHub notices.
+  // Pass logs represent successful checks and are emitted as plain logs.
   return { file, line, message };
 }
 
@@ -929,13 +928,6 @@ function emitGitHubWarning({ file, line, rule, message }) {
   // without blocking the document from moving forward.
   const escapedMessage = escapeWorkflowValue(`[${rule}] ${message}`);
   console.log(`::warning file=${file},line=${line},title=Playbook validation::${escapedMessage}`);
-}
-
-function emitGitHubNotice({ file, line, message }) {
-  // GitHub notices are used for passes so reviewers can see what has already
-  // been confirmed without turning successful checks into warnings or errors.
-  const escapedMessage = escapeWorkflowValue(message);
-  console.log(`::notice file=${file},line=${line},title=Playbook validation::${escapedMessage}`);
 }
 
 function escapeWorkflowValue(value) {
