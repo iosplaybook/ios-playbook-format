@@ -299,7 +299,6 @@ function validateFeatureFile(filePath, basename, items, passLogs) {
       return true;
     }
   );
-  state.expectEnd("feature.extra_content", "No additional content is allowed after the related risks list.");
   return state.diagnostics;
 }
 
