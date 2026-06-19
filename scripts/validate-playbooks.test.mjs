@@ -224,6 +224,51 @@ test("control playbooks accept numbered steps without requiring 'by' phrasing", 
   assert.doesNotMatch(result.stderr, /Detect by|Prevent by/);
 });
 
+test("risk playbooks allow additional content after the numbered demonstration steps", () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ios-playbook-validator-"));
+  const filePath = path.join(tempRoot, "platform-feature-01-risk-01.md");
+
+  fs.writeFileSync(
+    filePath,
+    [
+      "## platform-feature-01-risk-01",
+      "",
+      "### Description",
+      "",
+      "Because the iOS platform provides Secure Storage feature, your application is at risk of an attacker extracting secrets.",
+      "",
+      "### Goal",
+      "",
+      "As a result, this could lead to credential disclosure.",
+      "",
+      "### Demonstration",
+      "",
+      "Set up demo app with the following configuration:",
+      "",
+      "| Configuration | Detail |",
+      "| -------- | ------- |",
+      "| Build variant | Debug |",
+      "",
+      "Perform the following steps to demonstrate the risk of an attacker extracting secrets:",
+      "",
+      "1. Open the backup directory to locate the exported application data",
+      "",
+      "Additional notes about the demonstration can appear here.",
+      "A follow-up paragraph is also allowed.",
+      "",
+    ].join("\n"),
+    "utf8"
+  );
+
+  const result = runValidator([filePath]);
+
+  fs.rmSync(tempRoot, { recursive: true, force: true });
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /risk\.demo_steps/);
+  assert.doesNotMatch(result.stdout, /risk\.extra_content/);
+});
+
 function runValidator(filePaths) {
   return spawnSync(process.execPath, [scriptPath, "--stdin"], {
     cwd: repoRoot,

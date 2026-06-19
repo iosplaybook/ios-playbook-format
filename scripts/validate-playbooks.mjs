@@ -395,7 +395,6 @@ function validateRiskFile(filePath, basename, items, passLogs) {
     "risk.demo_steps",
     "Each demonstration step must follow the approved format '1. <action_verb> to <objective>'."
   );
-  state.expectEnd("risk.extra_content", "No additional content is allowed after the numbered demonstration steps.");
   return state.diagnostics;
 }
 
