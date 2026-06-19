@@ -358,9 +358,9 @@ function validateRiskFile(filePath, basename, items, passLogs) {
   // repeatable format. Each missing or malformed part is a failure.
   state.expectText("### Goal", "risk.goal_heading", "The next required section heading is '### Goal'.");
   state.expect(
-    /^As a result, this could lead to .+\.$/,
+    /^As a result, this could lead to (?:(?:_\*\*.+\*\*_)|(?:\*\*.+\*\*)|(?:_.+_)|.+?)(?: - .+)?\.$/,
     "risk.goal_sentence",
-    "The goal sentence must be written exactly as 'As a result, this could lead to <tactic>.'"
+    "The goal sentence must be written as 'As a result, this could lead to <tactic>.' and may optionally emphasize the tactic or append a short explanatory phrase such as ' - <explanation>.'"
   );
   state.expectText("### Demonstration", "risk.demonstration_heading", "The next required section heading is '### Demonstration'.");
   state.expect(

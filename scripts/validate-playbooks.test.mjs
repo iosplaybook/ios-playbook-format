@@ -269,6 +269,47 @@ test("risk playbooks allow additional content after the numbered demonstration s
   assert.doesNotMatch(result.stdout, /risk\.extra_content/);
 });
 
+test("risk goal sentences allow emphasized tactics with a short explanation", () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ios-playbook-validator-"));
+  const filePath = path.join(tempRoot, "platform-feature-01-risk-01.md");
+
+  fs.writeFileSync(
+    filePath,
+    [
+      "## platform-feature-01-risk-01",
+      "",
+      "### Description",
+      "",
+      "Because the iOS platform provides IPA Acquisition feature, your application is at risk of an attacker extracting the IPA file.",
+      "",
+      "### Goal",
+      "",
+      "As a result, this could lead to _**discovery**_ - attackers figuring out the IPA's vulnerabilities.",
+      "",
+      "### Demonstration",
+      "",
+      "Set up demo app with the following configuration:",
+      "",
+      "| Configuration | Detail |",
+      "| -------- | ------- |",
+      "| Build variant | Debug |",
+      "",
+      "Perform the following steps to demonstrate the risk of an attacker extracting the IPA file:",
+      "",
+      "1. Open the device backup directory to locate the generated IPA file",
+      "",
+    ].join("\n"),
+    "utf8"
+  );
+
+  const result = runValidator([filePath]);
+
+  fs.rmSync(tempRoot, { recursive: true, force: true });
+
+  assert.equal(result.status, 0);
+  assert.match(result.stdout, /risk\.goal_sentence/);
+});
+
 function runValidator(filePaths) {
   return spawnSync(process.execPath, [scriptPath, "--stdin"], {
     cwd: repoRoot,
