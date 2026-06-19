@@ -8,16 +8,91 @@ import path from "node:path";
 const repoRoot = process.cwd();
 const scriptPath = path.join(repoRoot, "scripts", "validate-playbooks.mjs");
 
-test("feature fixtures do not require a post-demonstration risk section", () => {
-  const result = runValidator(["examples/clarity/vague-steps/platform-feature-01.md"]);
+test("feature playbooks accept a post-demonstration related risks section", () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ios-playbook-validator-"));
+  const filePath = path.join(tempRoot, "platform-feature-01.md");
+
+  fs.writeFileSync(
+    filePath,
+    [
+      "## platform-feature-01",
+      "",
+      "### Description",
+      "",
+      "The iOS platform provides Secure Storage feature.",
+      "",
+      "### Additional context",
+      "",
+      "Secure Storage is a feature that protects application secrets stored on the device.",
+      "",
+      "### Demonstration",
+      "",
+      "Set up demo app with the following configuration:",
+      "",
+      "| Configuration | Detail |",
+      "| -------- | ------- |",
+      "| Build variant | Debug |",
+      "",
+      "Perform the following steps to enable Secure Storage:",
+      "",
+      "1. Open the project settings to enable encrypted storage",
+      "",
+      "Because the iOS platform provides Secure Storage feature, your app is at risk of:",
+      "",
+      "- [platform-feature-01-risk-01](platform-feature-01-risk-01.md)",
+      "",
+    ].join("\n"),
+    "utf8"
+  );
+
+  const result = runValidator([filePath]);
+
+  fs.rmSync(tempRoot, { recursive: true, force: true });
 
   assert.equal(result.status, 0);
-  assert.match(result.stdout, /feature\.demo_steps/);
-  assert.doesNotMatch(result.stdout, /feature\.risk_/);
+  assert.match(result.stdout, /feature\.related_risks_intro/);
+  assert.match(result.stdout, /feature\.related_risks_list/);
 });
 
 test("required table structure accepts two rows and proceeds to the next feature check", () => {
-  const result = runValidator(["examples/pass/platform-feature-01.md"]);
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ios-playbook-validator-"));
+  const filePath = path.join(tempRoot, "platform-feature-01.md");
+
+  fs.writeFileSync(
+    filePath,
+    [
+      "## platform-feature-01",
+      "",
+      "### Description",
+      "",
+      "The iOS platform provides Secure Storage feature.",
+      "",
+      "### Additional context",
+      "",
+      "Secure Storage is a feature that protects application secrets stored on the device.",
+      "",
+      "### Demonstration",
+      "",
+      "Set up demo app with the following configuration:",
+      "",
+      "| Configuration | Detail |",
+      "| -------- | ------- |",
+      "",
+      "Perform the following steps to enable Secure Storage:",
+      "",
+      "1. Open the project settings to enable encrypted storage",
+      "",
+      "Because the iOS platform provides Secure Storage feature, your app is at risk of:",
+      "",
+      "- [platform-feature-01-risk-01](platform-feature-01-risk-01.md)",
+      "",
+    ].join("\n"),
+    "utf8"
+  );
+
+  const result = runValidator([filePath]);
+
+  fs.rmSync(tempRoot, { recursive: true, force: true });
 
   assert.equal(result.status, 0);
   assert.match(result.stdout, /The configuration table uses the approved header/);
@@ -27,11 +102,95 @@ test("required table structure accepts two rows and proceeds to the next feature
 });
 
 test("each numbered demonstration step is validated for a feature playbook", () => {
-  const result = runValidator(["examples/pass/platform-feature-01.md"]);
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ios-playbook-validator-"));
+  const filePath = path.join(tempRoot, "platform-feature-01.md");
+
+  fs.writeFileSync(
+    filePath,
+    [
+      "## platform-feature-01",
+      "",
+      "### Description",
+      "",
+      "The iOS platform provides Secure Storage feature.",
+      "",
+      "### Additional context",
+      "",
+      "Secure Storage is a feature that protects application secrets stored on the device.",
+      "",
+      "### Demonstration",
+      "",
+      "Set up demo app with the following configuration:",
+      "",
+      "| Configuration | Detail |",
+      "| -------- | ------- |",
+      "",
+      "Perform the following steps to enable Secure Storage:",
+      "",
+      "1. Open the project settings to enable encrypted storage",
+      "2. Update the app configuration to store secrets in the encrypted container",
+      "",
+      "Because the iOS platform provides Secure Storage feature, your app is at risk of:",
+      "",
+      "- [platform-feature-01-risk-01](platform-feature-01-risk-01.md)",
+      "",
+    ].join("\n"),
+    "utf8"
+  );
+
+  const result = runValidator([filePath]);
+
+  fs.rmSync(tempRoot, { recursive: true, force: true });
 
   assert.equal(result.status, 0);
   assert.match(result.stdout, /Numbered list item 1 passed the 'feature\.demo_steps'/);
   assert.match(result.stdout, /Numbered list item 2 passed the 'feature\.demo_steps'/);
+});
+
+test("the validator reports multiple feature issues from one file", () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), "ios-playbook-validator-"));
+  const filePath = path.join(tempRoot, "platform-feature-01.md");
+
+  fs.writeFileSync(
+    filePath,
+    [
+      "## platform-feature-01",
+      "",
+      "### Description",
+      "",
+      "The iOS platform provides Secure Storage feature.",
+      "",
+      "### Additional context",
+      "",
+      "Wrong Name is a feature that protects application secrets stored on the device.",
+      "",
+      "### Demonstration",
+      "",
+      "Set up demo app with the following configuration:",
+      "",
+      "Perform the following steps to enable Another Name:",
+      "",
+      "Do the thing now",
+      "",
+      "Because the iOS platform provides Wrong Name feature, your app is at risk of:",
+      "",
+      "- [platform-feature-01-risk-01](platform-feature-01-risk-02.md)",
+      "",
+    ].join("\n"),
+    "utf8"
+  );
+
+  const result = runValidator([filePath]);
+
+  fs.rmSync(tempRoot, { recursive: true, force: true });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stdout, /feature\.additional_context_feature_name/);
+  assert.match(result.stdout, /table\.missing/);
+  assert.match(result.stdout, /feature\.steps_feature_name/);
+  assert.match(result.stdout, /feature\.demo_steps/);
+  assert.match(result.stdout, /feature\.related_risks_feature_name/);
+  assert.match(result.stdout, /feature\.related_risks_link_match/);
 });
 
 test("control playbooks accept numbered steps without requiring 'by' phrasing", () => {

@@ -179,21 +179,18 @@ function validateFeatureFile(filePath, basename, items, passLogs) {
     "The feature heading must be written exactly as '## platform-feature-01', where '01' is replaced with a two-digit value from 01 to 99."
   );
 
-  if (!heading) {
-    return state.diagnostics;
-  }
-
-  const headingSlug = heading.match[1];
-  if (headingSlug !== basename) {
+  const headingSlug = heading?.match[1] ?? null;
+  if (headingSlug && headingSlug !== basename) {
     state.error(
       heading.line,
       "heading.filename_match",
       `The top heading identifies this file as '${headingSlug}', but the filename is '${basename}.md'. These two identifiers must match so the document can be reviewed consistently.`,
       `Rename the file to '${headingSlug}.md', or change the heading to '## ${basename}' so the heading and filename agree.`
     );
-    return state.diagnostics;
   }
-  state.pass(heading.line, `The top heading matches the filename identifier '${headingSlug}'.`);
+  if (headingSlug === basename) {
+    state.pass(heading.line, `The top heading matches the filename identifier '${headingSlug}'.`);
+  }
 
   // These paired checks confirm both format and internal consistency:
   // - the wording must match the template
@@ -204,12 +201,10 @@ function validateFeatureFile(filePath, basename, items, passLogs) {
     "feature.description_sentence",
     "The description sentence must be written exactly as 'The iOS platform provides <feature_name> feature.'."
   );
-  if (!description) {
-    return state.diagnostics;
+  const featureName = description?.match[1] ?? null;
+  if (description) {
+    state.pass(description.line, "The description sentence follows the approved public wording.");
   }
-
-  const featureName = description.match[1];
-  state.pass(description.line, "The description sentence follows the approved public wording.");
 
   state.expectText("### Additional context", "feature.additional_context_heading", "The next required section heading is '### Additional context'.");
   const context = state.expect(
@@ -217,20 +212,17 @@ function validateFeatureFile(filePath, basename, items, passLogs) {
     "feature.additional_context_sentence",
     "The additional context sentence must be written exactly as '<feature_name> is a feature that <function>.'"
   );
-  if (!context) {
-    return state.diagnostics;
-  }
-
-  if (context.match[1] !== featureName) {
+  if (context && featureName && context.match[1] !== featureName) {
     state.error(
       context.line,
       "feature.additional_context_feature_name",
       `The additional context section names the feature as '${context.match[1]}', but the description section names it as '${featureName}'. The same feature name must be used throughout the document.`,
       `Rewrite the additional context line so it begins with '${featureName} is a feature that ...'.`
     );
-    return state.diagnostics;
   }
-  state.pass(context.line, "The additional context section uses the same feature name as the description.");
+  if (context && featureName && context.match[1] === featureName) {
+    state.pass(context.line, "The additional context section uses the same feature name as the description.");
+  }
 
   // Demonstration checks ensure the feature can be understood in practice.
   // A valid setup line, a valid configuration table, and at least one valid
@@ -241,34 +233,24 @@ function validateFeatureFile(filePath, basename, items, passLogs) {
     "feature.setup_line",
     "The setup line must be written exactly as 'Set up <environment> with the following configuration:'."
   );
-  if (state.diagnostics.length > 0) {
-    return state.diagnostics;
-  }
-
   state.expectTable();
-  if (state.diagnostics.length > 0) {
-    return state.diagnostics;
-  }
 
-  const stepsIntro = state.expect(
+  const stepsIntro = state.find(
     /^Perform the following steps to enable (.+):$/,
     "feature.steps_intro",
-    "The step introduction must be written exactly as 'Perform the following steps to enable <feature_name>:'."
+    "The step introduction must be written exactly as 'Perform the following steps to enable <feature_name>:' and must appear after the demonstration setup."
   );
-  if (!stepsIntro) {
-    return state.diagnostics;
-  }
-
-  if (stepsIntro.match[1] !== featureName) {
+  if (stepsIntro && featureName && stepsIntro.match[1] !== featureName) {
     state.error(
       stepsIntro.line,
       "feature.steps_feature_name",
       `The demonstration introduction refers to '${stepsIntro.match[1]}', but the description section refers to '${featureName}'. The same feature name must be used throughout the document.`,
       `Rewrite the line as 'Perform the following steps to enable ${featureName}:'.`
     );
-    return state.diagnostics;
   }
-  state.pass(stepsIntro.line, "The demonstration introduction uses the same feature name as the description.");
+  if (stepsIntro && featureName && stepsIntro.match[1] === featureName) {
+    state.pass(stepsIntro.line, "The demonstration introduction uses the same feature name as the description.");
+  }
 
   // This numbered-list check is intentionally broad about the action details
   // while still requiring a predictable sentence shape for scalable review.
@@ -277,29 +259,23 @@ function validateFeatureFile(filePath, basename, items, passLogs) {
     "feature.demo_steps",
     "Each demonstration step must follow the approved format '1. <action_verb> to <objective>'."
   );
-  if (state.diagnostics.length > 0) {
-    return state.diagnostics;
-  }
 
   const risksIntro = state.find(
     /^Because the iOS platform provides (.+) feature, your app is at risk of:$/,
     "feature.related_risks_intro",
     "The related risks introduction must be written exactly as 'Because the iOS platform provides <feature_name> feature, your app is at risk of:' and must appear after the numbered demonstration steps."
   );
-  if (!risksIntro) {
-    return state.diagnostics;
-  }
-
-  if (risksIntro.match[1] !== featureName) {
+  if (risksIntro && featureName && risksIntro.match[1] !== featureName) {
     state.error(
       risksIntro.line,
       "feature.related_risks_feature_name",
       `The related risks section names the feature as '${risksIntro.match[1]}', but the description section names it as '${featureName}'. The same feature name must be used throughout the document.`,
       `Rewrite the line as 'Because the iOS platform provides ${featureName} feature, your app is at risk of:'.`
     );
-    return state.diagnostics;
   }
-  state.pass(risksIntro.line, "The related risks introduction uses the same feature name as the description.");
+  if (risksIntro && featureName && risksIntro.match[1] === featureName) {
+    state.pass(risksIntro.line, "The related risks introduction uses the same feature name as the description.");
+  }
 
   state.expectBulletList(
     /^- \[(platform-feature-(0[1-9]|[1-9][0-9])-risk-(0[1-9]|[1-9][0-9]))\]\((platform-feature-(0[1-9]|[1-9][0-9])-risk-(0[1-9]|[1-9][0-9])\.md)\)$/,
@@ -339,21 +315,18 @@ function validateRiskFile(filePath, basename, items, passLogs) {
     "The risk heading must be written exactly as '## platform-feature-01-risk-01', where each numbered placeholder uses a two-digit value from 01 to 99."
   );
 
-  if (!heading) {
-    return state.diagnostics;
-  }
-
-  const headingSlug = heading.match[1];
-  if (headingSlug !== basename) {
+  const headingSlug = heading?.match[1] ?? null;
+  if (headingSlug && headingSlug !== basename) {
     state.error(
       heading.line,
       "heading.filename_match",
       `The top heading identifies this file as '${headingSlug}', but the filename is '${basename}.md'. These two identifiers must match so the document can be reviewed consistently.`,
       `Rename the file to '${headingSlug}.md', or change the heading to '## ${basename}' so the heading and filename agree.`
     );
-    return state.diagnostics;
   }
-  state.pass(heading.line, `The top heading matches the filename identifier '${headingSlug}'.`);
+  if (headingSlug === basename) {
+    state.pass(heading.line, `The top heading matches the filename identifier '${headingSlug}'.`);
+  }
 
   state.expectText("### Description", "risk.description_heading", "The next required section heading is '### Description'.");
   const description = state.expectOneOf(
@@ -364,26 +337,22 @@ function validateRiskFile(filePath, basename, items, passLogs) {
     "risk.description_sentence",
     "The risk description must follow the approved public template exactly."
   );
-  if (!description) {
-    return state.diagnostics;
-  }
+  const featureName = description?.match[1] ?? null;
+  let technique = description?.match[2] ?? null;
 
-  const featureName = description.match[1];
-  let technique = description.match[2] ?? null;
-
-  if (!technique) {
+  if (description && !technique) {
     const continuation = state.expect(
       /^is at risk of an attacker (.+)\.$/,
       "risk.description_continuation",
       "When the risk description is split over two lines, the second line must be written exactly as 'is at risk of an attacker <technique>.'"
     );
-    if (!continuation) {
-      return state.diagnostics;
+    if (continuation) {
+      technique = continuation.match[1];
     }
-
-    technique = continuation.match[1];
   }
-  state.pass(description.line, "The risk description follows the approved public wording.");
+  if (description) {
+    state.pass(description.line, "The risk description follows the approved public wording.");
+  }
 
   // The goal section explains the consequence of the risk.
   // The demonstration section shows the risk in action using a structured,
@@ -394,44 +363,30 @@ function validateRiskFile(filePath, basename, items, passLogs) {
     "risk.goal_sentence",
     "The goal sentence must be written exactly as 'As a result, this could lead to <tactic>.'"
   );
-  if (state.diagnostics.length > 0) {
-    return state.diagnostics;
-  }
-
   state.expectText("### Demonstration", "risk.demonstration_heading", "The next required section heading is '### Demonstration'.");
   state.expect(
     /^Set up .+ with the following configuration:$/,
     "risk.setup_line",
     "The setup line must be written exactly as 'Set up <environment> with the following configuration:'."
   );
-  if (state.diagnostics.length > 0) {
-    return state.diagnostics;
-  }
-
   state.expectTable();
-  if (state.diagnostics.length > 0) {
-    return state.diagnostics;
-  }
 
-  const stepsIntro = state.expect(
+  const stepsIntro = state.find(
     /^Perform the following steps to demonstrate the risk of an attacker (.+):$/,
     "risk.steps_intro",
-    "The step introduction must be written exactly as 'Perform the following steps to demonstrate the risk of an attacker <technique>:'."
+    "The step introduction must be written exactly as 'Perform the following steps to demonstrate the risk of an attacker <technique>:' and must appear after the demonstration setup."
   );
-  if (!stepsIntro) {
-    return state.diagnostics;
-  }
-
-  if (stepsIntro.match[1] !== technique) {
+  if (stepsIntro && technique && stepsIntro.match[1] !== technique) {
     state.error(
       stepsIntro.line,
       "risk.steps_technique",
       `The demonstration introduction names the attacker technique as '${stepsIntro.match[1]}', but the description section names it as '${technique}'. The same technique must be used throughout the document.`,
       `Rewrite the line as 'Perform the following steps to demonstrate the risk of an attacker ${technique}:'.`
     );
-    return state.diagnostics;
   }
-  state.pass(stepsIntro.line, "The demonstration introduction uses the same attacker technique as the description.");
+  if (stepsIntro && technique && stepsIntro.match[1] === technique) {
+    state.pass(stepsIntro.line, "The demonstration introduction uses the same attacker technique as the description.");
+  }
 
   // The technique named in the demonstration must match the technique named in
   // the description. This prevents public-facing documents from drifting into
@@ -457,21 +412,18 @@ function validateControlFile(filePath, basename, items, passLogs) {
     "The control heading must be written exactly as '## platform-feature-01-risk-01-control-01', where each numbered placeholder uses a two-digit value from 01 to 99."
   );
 
-  if (!heading) {
-    return state.diagnostics;
-  }
-
-  const headingSlug = heading.match[1];
-  if (headingSlug !== basename) {
+  const headingSlug = heading?.match[1] ?? null;
+  if (headingSlug && headingSlug !== basename) {
     state.error(
       heading.line,
       "heading.filename_match",
       `The top heading identifies this file as '${headingSlug}', but the filename is '${basename}.md'. These two identifiers must match so the document can be reviewed consistently.`,
       `Rename the file to '${headingSlug}.md', or change the heading to '## ${basename}' so the heading and filename agree.`
     );
-    return state.diagnostics;
   }
-  state.pass(heading.line, `The top heading matches the filename identifier '${headingSlug}'.`);
+  if (headingSlug === basename) {
+    state.pass(heading.line, `The top heading matches the filename identifier '${headingSlug}'.`);
+  }
 
   state.expect(
     /^Your app can prevent the risk of an attacker (.+) by taking the following steps:$/,
@@ -526,6 +478,7 @@ function createParser(filePath, items, passLogs) {
       const match = item.text.match(pattern);
       if (!match) {
         this.error(item.line, rule, `${message} The review found '${item.text}' on this line instead.`, `Replace line ${item.line} with the required template text so the document matches the approved format.`);
+        this.index += 1;
         return null;
       }
 
@@ -577,6 +530,7 @@ function createParser(filePath, items, passLogs) {
         }
       }
 
+      this.index += 1;
       this.error(item.line, rule, `${message} The review found '${item.text}' on this line instead.`, `Replace line ${item.line} with wording that matches one of the approved template options.`);
       return null;
     },
