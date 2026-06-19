@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { extractCompletenessContent, normalizeModelResponse } from "./completeness-playbooks.mjs";
+import { collectStaticCompletenessFindings, extractCompletenessContent, normalizeModelResponse } from "./completeness-playbooks.mjs";
 
 test("normalizeModelResponse accepts a valid incorrect-claim finding", () => {
   const result = normalizeModelResponse(
@@ -213,4 +213,49 @@ Perform the following steps to enable Secure Storage:
   assert.match(content, /^7: Set up demo app with the following configuration:$/m);
   assert.match(content, /^11: Perform the following steps to enable Secure Storage:$/m);
   assert.match(content, /^12: 1\. Update the app to use encrypted storage to protect the secret at rest$/m);
+});
+
+test("collectStaticCompletenessFindings warns when a control step does not start with Detect or Prevent", () => {
+  const findings = collectStaticCompletenessFindings(
+    "playbooks/platform-feature-01-risk-01-control-01.md",
+    "control",
+    [
+      "## platform-feature-01-risk-01-control-01",
+      "Your app can prevent the risk of an attacker extracting secrets by taking the following steps:",
+      "1. Move hardcoded credentials into confidential storage",
+      "2. Prevent secret exposure by using device-bound encryption",
+    ]
+  );
+
+  assert.deepEqual(findings, [
+    {
+      file: "playbooks/platform-feature-01-risk-01-control-01.md",
+      line: 3,
+      severity: "advisory",
+      category: "demo_inconsistency",
+      message: "This control step should start with 'Detect' or 'Prevent'.",
+      evidence: "1. Move hardcoded credentials into confidential storage",
+      whyItMatters: "Using a consistent action verb makes control guidance easier to scan and compare across playbooks.",
+      suggestion: "Rewrite this step so it starts with 'Detect' or 'Prevent' while preserving the current meaning.",
+    },
+  ]);
+});
+
+test("collectStaticCompletenessFindings ignores non-control files and compliant control steps", () => {
+  const controlFindings = collectStaticCompletenessFindings(
+    "playbooks/platform-feature-01-risk-01-control-01.md",
+    "control",
+    [
+      "1. Detect hardcoded credentials by scanning the Swift source files",
+      "2. Prevent secret exposure by moving credentials into confidential storage",
+    ]
+  );
+  const featureFindings = collectStaticCompletenessFindings(
+    "playbooks/platform-feature-01.md",
+    "feature",
+    ["1. Open the project settings to enable encrypted storage"]
+  );
+
+  assert.deepEqual(controlFindings, []);
+  assert.deepEqual(featureFindings, []);
 });

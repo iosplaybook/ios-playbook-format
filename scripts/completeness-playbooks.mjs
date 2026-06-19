@@ -110,6 +110,7 @@ async function reviewFileWithGitHubModels(filePath) {
   const lines = raw.split(/\r?\n/);
   const type = inferTypeFromFilename(path.basename(filePath, ".md")) ?? "unknown";
   const completenessContent = extractCompletenessContent(raw);
+  const staticFindings = collectStaticCompletenessFindings(filePath, type, lines);
 
   const requestBody = {
     model: MODEL_NAME,
@@ -166,12 +167,23 @@ async function reviewFileWithGitHubModels(filePath) {
   const content = extractAssistantContent(payload);
   if (!content) {
     return {
-      findings: [],
+      findings: staticFindings,
       error: "GitHub Models returned no assistant content to parse.",
     };
   }
 
-  return normalizeModelResponse(content, filePath, lines.length);
+  const normalized = normalizeModelResponse(content, filePath, lines.length);
+  if (normalized.error) {
+    return {
+      findings: staticFindings,
+      error: normalized.error,
+    };
+  }
+
+  return {
+    findings: [...staticFindings, ...normalized.findings],
+    error: null,
+  };
 }
 
 function buildSystemPrompt() {
@@ -233,6 +245,38 @@ export function extractCompletenessContent(raw) {
   }
 
   return filteredLines.join("\n");
+}
+
+export function collectStaticCompletenessFindings(filePath, type, lines) {
+  if (type !== "control") {
+    return [];
+  }
+
+  const findings = [];
+
+  for (const [index, line] of lines.entries()) {
+    const trimmed = line.trim();
+    if (!/^\d+\.\s+/.test(trimmed)) {
+      continue;
+    }
+
+    if (/^\d+\.\s+(Detect|Prevent)\b/.test(trimmed)) {
+      continue;
+    }
+
+    findings.push({
+      file: filePath,
+      line: index + 1,
+      severity: "advisory",
+      category: "demo_inconsistency",
+      message: "This control step should start with 'Detect' or 'Prevent'.",
+      evidence: trimmed,
+      whyItMatters: "Using a consistent action verb makes control guidance easier to scan and compare across playbooks.",
+      suggestion: `Rewrite this step so it starts with 'Detect' or 'Prevent' while preserving the current meaning.`,
+    });
+  }
+
+  return findings;
 }
 
 function isIgnoredHeading(trimmed) {
