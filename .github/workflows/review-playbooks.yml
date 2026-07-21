@@ -2,6 +2,7 @@ name: Review Playbooks
 
 on:
   pull_request:
+  workflow_dispatch:
 
 jobs:
   review-playbooks:
