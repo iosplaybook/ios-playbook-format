@@ -2,11 +2,11 @@
 
 Your app can prevent the risk of an attacker analyzing the application's IPA file by taking the following steps:
 
-1. Move hardcoded Swift string literals, such as usernames and passwords, into a `confidential.yml` file instead of writing the credentials directly in the Swift source file to reduce plaintext credential exposure (screenshot 1).
+1. Prevent plaintext credential exposure by moving hardcoded Swift string literals, such as usernames and passwords, into a `confidential.yml` file instead of writing the credentials directly in the Swift source file (screenshot 1).
 
 <img src="attachments/feature1_risk1_control1_ss1.png" width="400" alt="Alt text">
 
-2. Add the Swift Confidential package dependency to the Xcode project, enable the Swift Confidential build plugin for the target, and process `confidential.yml` during the application build process to reduce direct plaintext credential exposure in the compiled binary (screenshot 2 - 5).
+2. Prevent direct plaintext credential exposure in the compiled binary by adding the Swift Confidential package dependency in Xcode through **File > Add Package Dependencies**, selecting the Swift Confidential package, enabling the Swift Confidential build plugin for the app target, and processing `confidential.yml` during the application build process (screenshot 2 - 5). This reduces direct plaintext exposure only when the original strings are removed from source and the generated secret references are used consistently.
 
 <img src="attachments/feature1_risk1_control1_ss2.png" width="400" alt="Alt text">
 
@@ -16,25 +16,25 @@ Your app can prevent the risk of an attacker analyzing the application's IPA fil
 
 <img src="attachments/feature1_risk1_control1_ss5.png" width="400" alt="Alt text">
 
-3. Generate obfuscated Swift code with Swift Confidential so the app reconstructs the secret values at runtime instead of leaving the original strings directly in the source file and compiled binary. This makes simple static extraction harder, but it does not make runtime secrets unrecoverable.
+3. Prevent simple static extraction by generating obfuscated Swift code with Swift Confidential, such as generated `Secrets.demoEmail` and `Secrets.demoPassword` accessors that reconstruct secret values at runtime instead of leaving the original strings directly in the source file and compiled binary. This obfuscation raises the effort for string-based extraction, but it does not make runtime secrets unrecoverable.
 
 > ***Note**: The `confidential.yml` file should not be built into the app bundle.*
 
-4. Update the application code to reference the generated secret values, such as `Secrets.demoEmail` and `Secrets.demoPassword`, instead of directly using plaintext credentials in source code (screenshot 6).
+4. Prevent direct use of plaintext credentials in source code by updating the application code to reference the generated secret values, such as `Secrets.demoEmail` and `Secrets.demoPassword`, instead of directly using plaintext credentials in source code (screenshot 6).
 
 <img src="attachments/feature1_risk1_control1_ss6.png" width="400" alt="Alt text">
 
-5. Configure Swift Confidential's build-time obfuscation and runtime deobfuscation process to make straightforward recovery of secret values harder. Depending on the project configuration, the plugin may use a random mix of steps: `shuffle` rearranges bytes and stores obfuscated index metadata, `encrypt` encrypts secret bytes using AES-GCM or ChaChaPoly, `compress` compresses the data and hides compression magic bytes, and `nonce` uses a random number to hide or deobfuscate metadata such as keys, indexes, and magic bytes.
+5. Prevent straightforward recovery of secret values by configuring Swift Confidential's build-time obfuscation and runtime deobfuscation process after reviewing whether the selected obfuscation methods fit the app's threat model. Depending on the project configuration, the plugin may use a random mix of steps: `shuffle` rearranges bytes and stores obfuscated index metadata, `encrypt` encrypts secret bytes using AES-GCM or ChaChaPoly, `compress` compresses the data and hides compression magic bytes, and `nonce` uses a random number to hide or deobfuscate metadata such as keys, indexes, and magic bytes.
 
-6. Review the generated obfuscation code to understand how encrypted secret values are reconstructed at runtime. In this implementation, encryption keys are stored as obfuscated key bytes and recovered at runtime by XORing the key bytes with nonce bytes. This is an obfuscation mechanism rather than a standalone cryptographic guarantee. The formula used is shown below.
+6. Detect weak assumptions in the generated obfuscation code by reviewing how encrypted secret values are reconstructed at runtime. In this implementation, encryption keys are stored as obfuscated key bytes and recovered at runtime by XORing the key bytes with nonce bytes. This XOR operation is part of the obfuscation scheme and should not be treated as a standalone cryptographic control or as adequate protection against debugging, hooking, or memory inspection. The formula used is shown below.
 
 ```
 byte ^ nonceBytes[index % nonceByteWidth]
 ```
 
-7. Rebuild the application, extract the IPA, and check the compiled binary using `strings`, MobSF, and other static analysis tools to detect whether the original plaintext credential values still appear directly in the binary.
+7. Detect remaining plaintext credential exposure by rebuilding the application, extracting the IPA, and checking the compiled binary using `strings`, MobSF, and other static analysis tools to identify whether the original plaintext credential values still appear directly in the binary.
 
-8. Review any remaining values found in the compiled binary, including usernames, passwords, API keys, tokens, backend URLs, private keys, salts, and test credentials. Move eligible values into `confidential.yml`, update the code to reference the generated secret values, and rebuild the application until those plaintext values no longer appear in static analysis results.
+8. Prevent remaining plaintext credential exposure by reviewing any remaining values found in the compiled binary, including usernames, passwords, API keys, tokens, backend URLs, private keys, salts, and test credentials. Move only eligible values into `confidential.yml`, verify that the move does not break application logic or server-side validation, update the code to reference the generated secret values, and rebuild the application until those plaintext values no longer appear in static analysis results.
 
 > ***Note**: At runtime, the app must eventually reconstruct the plaintext value to compare it. Swift Confidential mainly protects against easy static extraction with tools like `strings`, but it does not stop a determined attacker from debugging the app, hooking the getter, dumping memory, or patching the login result.*
 
