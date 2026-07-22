@@ -1,6 +1,10 @@
 name: Review Playbooks
 
 on:
+  push:
+    branches:
+      - main
+      - draft
   pull_request:
   workflow_dispatch:
 
@@ -34,6 +38,8 @@ jobs:
           if [ "${{ github.event_name }}" = "pull_request" ]; then
             git fetch origin "${{ github.base_ref }}" --depth=1
             files="$(git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" | grep '^playbooks/.*\.md$' || true)"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            files="$(git diff --name-only --diff-filter=ACMR "${{ github.event.before }}...${{ github.sha }}" | grep '^playbooks/.*\.md$' || true)"
           else
             files="$(find playbooks -type f -name '*.md' | sort || true)"
           fi
