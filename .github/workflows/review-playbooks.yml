@@ -16,6 +16,11 @@ jobs:
       pull-requests: read
       models: read
 
+    env:
+      GITHUB_MODELS_CLARITY_MODEL: openai/gpt-4.1-mini
+      GITHUB_MODELS_FACTCHECK_MODEL: openai/gpt-4.1
+      GITHUB_MODELS_COMPLETENESS_MODEL: openai/gpt-4.1
+
     steps:
       - name: Prepare the submitted materials for review
         uses: actions/checkout@v4
