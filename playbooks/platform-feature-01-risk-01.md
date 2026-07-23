@@ -19,7 +19,7 @@ Set up a workstation with the following configuration:
 
 Perform the following steps to demonstrate the risk of an attacker analyzing the application's IPA file:
 
-1. Set up a mobile application analyzer like Mobile Security Framework (MobSF) to listen on `http://localhost:8000` and perform static analysis on IPAs. Ensure Docker is running, confirm that the MobSF web interface loads, and treat MobSF results as tool-assisted findings because support can vary by IPA format, encryption, signing state, app packaging, and obfuscation.
+1. Set up a mobile application analyzer like Mobile Security Framework (MobSF) to listen on `http://localhost:8000` and perform static analysis on a standard, decrypted `.ipa` archive that can be unpacked and inspected by the tool. Ensure Docker is running, confirm that the MobSF web interface loads, and treat MobSF results as tool-assisted findings because analysis may be incomplete for encrypted App Store IPAs, malformed archives, unsupported packaging layouts, missing metadata, heavy obfuscation, or binaries that require manual reverse engineering.
 
 ```shell
 docker run -it --rm -p 8000:8000 opensecurity/mobile-security-framework-mobsf
