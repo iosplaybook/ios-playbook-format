@@ -6,7 +6,7 @@ Because the iOS platform provides IPA acquisition feature, your application is a
 
 ### Goal
 
-As a result, this could lead to _**Discovery**_ - attackers finding out the IPA's hardcoded secrets.
+As a result, this could lead to _**Discovery**_ - attackers finding out the IPA's plaintext literals.
 
 ### Demonstration
 
