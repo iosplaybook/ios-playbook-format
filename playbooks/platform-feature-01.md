@@ -25,22 +25,26 @@ Perform the following steps to enable IPA acquisition:
 2. Select `Devices` and select your iPhone.
 
 <img src="attachments/feature1_ss1.png" width="500" alt="Alt text">
->*Select `Devices > CSEC's iPhone`*
+
+*Select `Devices > CSEC's iPhone`*
 
 5. Select `Manage Apps`.
 
 <img src="attachments/feature1_ss2.png" width="500" alt="Alt text">
->*Select `Manage Apps`*
+
+*Select `Manage Apps`*
 
 6. Install the app that you want to export.
 
 <img src="attachments/feature1_ss3.png" width="500" alt="Alt text">
->*Install the app*
+
+*Install the app*
 
 7. Select the **More Options** (`...`) button on the bottom right of the application and select `Export .IPA`.
 
 <img src="attachments/feature1_ss4.png" width="500" alt="Alt text">
->*Export the IPA*
+
+*Export the IPA*
 
 Because the iOS platform provides IPA acquisition feature, your app is at risk of:
 - [platform-feature-01-risk-01](platform-feature-01-risk-01.md)
