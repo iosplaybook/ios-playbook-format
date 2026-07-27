@@ -29,7 +29,7 @@ docker run -it --rm -p 8000:8000 opensecurity/mobile-security-framework-mobsf
 
 2. Upload the `.ipa` file to MobSF and review the static analysis report for the app's overall security score, configuration issues, and sensitive information, such as hardcoded keys, embedded URLs, and other exposed data.
 
-<img src="attachments/feature1_Risk1_ss1.png" width="400" alt="Alt text">
+<img src="attachments/feature1_risk1_ss1.png" width="400" alt="Alt text">
 
 *Exposed credentials and api key*
 
