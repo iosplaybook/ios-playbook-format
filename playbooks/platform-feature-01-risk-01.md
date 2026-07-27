@@ -19,15 +19,19 @@ Set up a workstation with the following configuration:
 
 Perform the following steps to demonstrate the risk of an attacker analyzing the application's IPA file:
 
-1. Set up a mobile application analyzer like Mobile Security Framework (MobSF) to listen on `http://localhost:8000` and perform static analysis on a standard, decrypted `.ipa` archive that can be unpacked and inspected by the tool. Ensure Docker is running, confirm that the MobSF web interface loads, and treat MobSF results as tool-assisted findings because analysis may be incomplete for encrypted App Store IPAs, malformed archives, unsupported packaging layouts, missing metadata, heavy obfuscation, or binaries that require manual reverse engineering.
+1. Set up Mobile Security Framework (MobSF) to perform static analysis on the `.ipa` file.
+
+*Command to start MobSF:*
 
 ```shell
 docker run -it --rm -p 8000:8000 opensecurity/mobile-security-framework-mobsf
 ```
 
-2. Upload a target IPA to initiate the analysis and review the generated report for exposed strings, bundled resources, Info.plist values, permissions, entitlements, embedded URLs, hardcoded credentials, and other sensitive information. Treat the report as a starting point because tool coverage depends on the IPA contents, app obfuscation, and MobSF configuration. Below shows an example of exposed hardcoded secrets within an IPA file (screenshot 1).
+2. Upload the `.ipa` file to MobSF and review the static analysis report for the app's overall security score, configuration issues, and sensitive information, such as hardcoded keys, embedded URLs, and other exposed data.
 
 <img src="attachments/feature1_Risk1_ss1.png" width="400" alt="Alt text">
+
+*Exposed credentials and api key*
 
 Feature-01-Risk-01 control measures:
 
