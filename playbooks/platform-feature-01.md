@@ -21,26 +21,26 @@ Set up a physical iOS device with the following configuration:
 
 Perform the following steps to enable IPA acquisition:
 
-1. Install and Open iMazing.
-2. Select `Devices` and select your iPhone.
+1. Install and Start iMazing.
+2. Select `Devices` and select the connected iPhone.
 
 <img src="attachments/feature1_ss1.png" width="500" alt="Alt text">
 
-*Select `Devices > CSEC's iPhone`*
+*Select `Devices > CSEC's iPhone (Connected iPhone)`*
 
-5. Select `Manage Apps`.
+5. Select `Manage Apps` to list the Apps installed on the iPhone.
 
 <img src="attachments/feature1_ss2.png" width="500" alt="Alt text">
 
 *Select `Manage Apps`*
 
-6. Install the app that you want to export.
+6. Install the App to be exported.
 
 <img src="attachments/feature1_ss3.png" width="500" alt="Alt text">
 
-*Install the app*
+*Install the HealthHub App*
 
-7. Select the **More Options** (`...`) button on the bottom right of the application and select `Export .IPA`.
+7. Select the **More Options** (`...`) button on the bottom right of iMazing and select `Export .IPA`.
 
 <img src="attachments/feature1_ss4.png" width="500" alt="Alt text">
 
