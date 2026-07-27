@@ -3,8 +3,8 @@ name: Review Playbooks
 on:
   push:
     branches:
-      - main
-      - draft
+      # - main
+      # - draft
   pull_request:
   workflow_dispatch:
 
