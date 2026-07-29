@@ -1,45 +1,50 @@
 ## platform-feature-01
+
 ### Description
+
 The iOS platform provides IPA acquisition feature.
+
 ### Additional context
-IPA acquisition is a feature that allows an IPA file to be obtained from Apple Configurator on macOS, enabling security testers to inspect the application’s structure, configuration, permissions, and entitlements.
+
+IPA acquisition is a feature that allows an IPA file to be obtained from [iMazing](https://imazing.com/guides/how-to-manage-apps-without-itunes?utm_medium=app) on macOS, enabling security testers to inspect the application's structure, configuration, permissions, and entitlements.
+
 ### Demonstration
+
 Set up a physical iOS device with the following configuration:
-| Configuration | Detail            |
-| ------------- | ----------------- |
-| Device model  | iPhone 15         |
-| iOS Version   | 17.6              |
-| Device State  | Non-Jailbroken    |
-| App Used      | Singpass  v26.0.4 |
+
+| Configuration | Detail         |
+| ------------- | -------------- |
+| Device model  | iPhone 15      |
+| iOS Version   | 17.6           |
+| Device State  | Non-Jailbroken |
+| App Used      | HealthHub      |
 
 Perform the following steps to enable IPA acquisition:
-1. Install the target app on your iPhone to ensure the app is already associated with your Apple ID.
 
-2. Open Apple Configurator on your Mac to prepare for downloading the app IPA through Apple’s app installation flow. Confirm that the Apple ID signed in on the iPhone is the same Apple ID used on your Mac.
+1. Install and start iMazing. This gives you access to the tools required to manage apps on the connected iPhone and export IPA files.
+2. Select `Devices`, and then select the connected iPhone. This displays the apps and management options for the selected device.
 
-3. Open Terminal on your Mac and run a script to monitor Apple Configurator’s temporary IPA cache folder, copying any downloaded .ipa file to a local ipa_tmp folder.
+<img src="attachments/feature1_ss1.png" width="500" alt="Alt text">
 
-```
-mkdir ipa_tmp
+*Screenshot shows the list of connected iPhones under `Devices`.*
 
-while true; do
-	find ~/Library/Group\ Containers/K36BKF7T3D.group.com.apple.configurator/Library/Caches/Assets/TemporaryItems/MobileApps/ -name "*.ipa" -exec cp {} ipa_tmp/ \;
-	sleep 0.3
-done
-```
+3. Select `Manage Apps`. This lists the apps installed on the connected iPhone and provides access to the installation and export options.
 
-4. In Apple Configurator, select your connected iOS device to manage apps on that device. Double-click the iOS device to open the device management screen. Click Add (+) → Apps from the top menu bar to search for and add the app through Apple Configurator.
-<img width="500" alt="apple-configurator" src="https://github.com/user-attachments/assets/e1915b4f-16e0-4eb8-bb5d-8420b2845c42" />
-<img width="500" alt="add-app-thru-apple-configurator" src="https://github.com/user-attachments/assets/2cada6c5-3e80-4a62-8d6a-4f68ff75114d" />
+<img src="attachments/feature1_ss2.png" width="500" alt="Alt text">
 
-5. Select the target app to trigger Apple Configurator to download the IPA from Apple and install it on your iPhone. When the reinstall prompt appears, choose Replace to continue the installation flow. While Apple Configurator downloads and installs the app, the IPA file should temporarily appear in the below directory.
+*Screenshot shows the tools provided by iMazing.*
 
-```
-~/Library/Group Containers/K36BKF7T3D.group.com.apple.configurator/Library/Caches/Assets/TemporaryItems/MobileApps/)
-```
+4. Install the app that you intend to export. This ensures that iMazing can access the app package required for export. Note: wait for the installation to complete before you continue.
 
-6. After the script copies the IPA, open the ipa_tmp folder to confirm that the .ipa file was captured successfully.
+<img src="attachments/feature1_ss3.png" width="500" alt="Alt text">
+
+*Screenshot shows the `HealthHub` app selected for installation.*
+
+5. Select the More Options (`...`) button on the bottom right of iMazing and select `Export .IPA`. This creates an IPA file from the selected app package.
+
+<img src="attachments/feature1_ss4.png" width="500" alt="Alt text">
+
+*Screenshot shows the menu option to export the app as an IPA file.*
 
 Because the iOS platform provides IPA acquisition feature, your app is at risk of:
 - [platform-feature-01-risk-01](platform-feature-01-risk-01.md)
-- [platform-feature-01-risk-02](platform-feature-01-risk-02.md)
