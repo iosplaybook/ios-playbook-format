@@ -21,12 +21,6 @@ Perform the following steps to demonstrate the risk of an attacker analysing the
 
 1. Set up Mobile Security Framework (MobSF) to perform static analysis on the `.ipa` file.
 
-*Command to start MobSF:*
-
-```shell
-docker run -it --rm -p 8000:8000 opensecurity/mobile-security-framework-mobsf
-```
-
 2. Upload the `.ipa` file to MobSF and review the static analysis report for the app's overall security score, configuration issues, and sensitive information, such as hardcoded keys, embedded URLs, and other exposed data.
 
 <img src="attachments/feature1_risk1_ss1.png" width="400" alt="Alt text">
