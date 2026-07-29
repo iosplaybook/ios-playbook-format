@@ -6,11 +6,11 @@ Your app can prevent the risk of an attacker analysing the application's IPA fil
 
 <img src="attachments/feature1_risk1_control1_ss1.png" width="400" alt="Alt text">
 
-*To add the swift-confidential plugin, go to `File > Add Package Dependencies`*
+*Add the swift-confidential plugin to Xcode under `File > Add Package Dependencies`*
 
 <img src="attachments/feature1_risk1_control1_ss2.png" width="400" alt="Alt text">
 
-*Select `swift-confidential` plugin*
+*Select `swift-confidential` plugin to add the dependency to Xcode*
 
 <img src="attachments/feature1_risk1_control1_ss3.png" width="400" alt="Alt text">
 
@@ -18,13 +18,13 @@ Your app can prevent the risk of an attacker analysing the application's IPA fil
 
 <img src="attachments/feature1_risk1_control1_ss4.png" width="400" alt="Alt text">
 
-*Select the `Confidential` package from the `swift-confidential` plugin*
+*Select the `Confidential` package from the `swift-confidential` plugin to add to the project*
 
 2. Move plaintext literals to `confidential.yml`. This allows the plugin to generate obfuscated Swift accessors for those literals during the build.  
 
 <img src="attachments/feature1_risk1_control1_ss5.png" width="400" alt="Alt text">
 
-*Contents of `confidential.yml`*
+*Example contents of `confidential.yml`*
 
 > ***Note**: The `confidential.yml` file should not be built into the app bundle.*
 
@@ -32,11 +32,11 @@ Your app can prevent the risk of an attacker analysing the application's IPA fil
 
 <img src="attachments/feature1_risk1_control1_ss6.png" width="400" alt="Alt text">
 
-*Calling the `apiKey` in source code from `confidential.yml`*
+*Accessing the `apiKey` defined in `confidential.yml` from the source code*
 
 4. Rebuild the application and use a static analysis tool, such as MobSF, to verify that the original plaintext literals are no longer easily recoverable from the `.ipa` file.
 
-> ***Note**: At runtime, the app must eventually reconstruct the plaintext value to compare it. Swift Confidential mainly protects against easy static extraction with tools like `strings`, but it does not stop a determined attacker from debugging the app, hooking the getter, dumping memory, or patching the login result.*
+> ***Note**: Swift Confidential prevents easy static extraction but not runtime attacks such as hooking, memory dumping, or patching..*
 
 ### References
 
