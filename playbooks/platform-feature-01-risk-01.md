@@ -25,7 +25,7 @@ Perform the following steps to demonstrate the risk of an attacker analysing the
 
 <img src="attachments/feature1_risk1_ss1.png" width="400" alt="Alt text">
 
-*Exposed credentials and api key*
+*Screenshot shows possible exposed credentials and api key found by MobSF*
 
 Feature-01-Risk-01 control measures:
 
