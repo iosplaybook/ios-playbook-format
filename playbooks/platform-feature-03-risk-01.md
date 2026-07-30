@@ -6,15 +6,15 @@ Because the iOS platform provides HTTP Proxy configuration feature, your applica
 
 ### Goal
 
-As a result, this could lead to ***collection** - attackers being able to monitor data between applications.*
+As a result, this could lead to ***Collection*** - attackers being able to monitor data between applications.
 
 ### Demonstration
 
 Set up physical iOS device and macOS workstation with the following configuration:
 
-| Configuration  | Detail              |
-| -------------- | ------------------- |
-| Prerequisite   | Platform-feature-03 |
+| Configuration | Detail              |
+| ------------- | ------------------- |
+| Prerequisite  | platform-feature-03 |
 
 Perform the following steps to demonstrate the risk of an attacker monitoring data between applications:
 
