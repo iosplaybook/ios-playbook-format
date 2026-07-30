@@ -70,4 +70,4 @@ ipconfig getifaddr en0
 *Screenshot shows HTTP history of the iPhone on BurpSuite*
 
 Because the iOS platform provides HTTP Proxy Configuration feature, your app is at risk of:
-- [Platform_Feature-03-Risk-01](Platform_Feature-03-Risk-01.md)
+- [platform-feature-03-risk-01](platform-feature-03-risk-01.md)

@@ -25,4 +25,4 @@ Perform the following steps to demonstrate the risk of an attacker monitoring da
 *Screenshot shows intercepted packet containing data*
 
 Feature-03-Risk-01 Control Measures:
-- [Platform_Feature-03-Risk-01-Control-01](Platform_Feature-03-Risk-01-Control-01.md)
+- [platform-feature-03-risk-01-control-01](platform-feature-03-risk-01-control-01.md)
