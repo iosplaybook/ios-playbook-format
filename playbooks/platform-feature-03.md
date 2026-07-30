@@ -3,9 +3,11 @@
 ### Description
 
 The iOS platform provides HTTP proxy configuration feature.
+
 ### Additional Context
 
 HTTP proxy configuration is a feature that allows network traffic from a physical iOS device to be routed through a tester-controlled proxy server, enabling authorised security testers to inspect HTTP requests and responses, observe backend endpoints, validate transport security behaviour, and identify sensitive data exposure during dynamic analysis. 
+
 ### Demonstration
 
 Set up a physical iOS device with the following configuration:

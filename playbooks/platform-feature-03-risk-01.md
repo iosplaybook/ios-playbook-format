@@ -3,6 +3,7 @@
 ### Description
 
 Because the iOS platform provides HTTP Proxy configuration feature, your application is at risk of an attacker monitoring data between applications.
+
 ### Goal
 
 As a result, this could lead to ***collection** - attackers being able to monitor data between applications.*
