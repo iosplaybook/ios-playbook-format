@@ -20,7 +20,7 @@ Perform the following steps to demonstrate the risk of an attacker monitoring da
 
 1. Use BurpSuite to intercept a request. The intercepted request with data that can be studied to give the attack an idea on how to craft a payload for their attacks
 
-<img src="../attachments/feature3_risk1_ss1.png" width="400" alt="Alt text">
+<img src="attachments/feature3_risk1_ss1.png" width="400" alt="Alt text">
 
 *Screenshot shows intercepted packet containing data*
 

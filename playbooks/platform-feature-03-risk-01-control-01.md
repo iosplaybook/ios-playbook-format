@@ -4,7 +4,7 @@ Your app can prevent the risk of an attacker monitoring data between application
 
 1. By calling `CFNetworkCopySystemProxySettings()`, the current system-wide internet proxy configuration can be retrieved. 
 
-<img src="../attachments/feature3_risk1_control1_ss1.png" width="400" alt="Alt text">
+<img src="attachments/feature3_risk1_control1_ss1.png" width="400" alt="Alt text">
 
 *Screenshot shows the source code calling `CFNetworkCopySystemProxySettings()` to retrieve the proxy configuration*
 
@@ -16,11 +16,11 @@ Your app can prevent the risk of an attacker monitoring data between application
 
 3. Create a warning to the user when a proxy configured. This alerts the user to be careful when sending high-risk requests.
 
-<img src="../attachments/feature3_risk1_control1_ss2.png" width="400" alt="Alt text">
+<img src="attachments/feature3_risk1_control1_ss2.png" width="400" alt="Alt text">
 
 *Screenshot shows source code for proxy configuration check*
 
-<img src="../attachments/feature3_risk1_control1_ss3.png" width="400" alt="Alt text">
+<img src="attachments/feature3_risk1_control1_ss3.png" width="400" alt="Alt text">
 
 *Screenshot shows warning to user that proxy is configured*
 

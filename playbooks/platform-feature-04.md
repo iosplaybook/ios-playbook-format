@@ -21,17 +21,17 @@ Perform the following steps to enable screen capture:
 
 1. On the macOS workstation, open `System Settings` and search for `AirPlay Receiver`. Turn `Airplay Receiver` on and under `Allow AirPlay for`, select `Everyone`. This setting enables the `AirPlay`. 
 
-<img src="../attachments/feature4_ss1.png" width="400" alt="Alt text">
+<img src="attachments/feature4_ss1.png" width="400" alt="Alt text">
 
 *Screenshot shows the correct setting configured for Airplay*
 
 2. On the iPhone, navigate to the `Control Centre` and select `Screen Mirroring`. Select the macOS workstation to begin screen mirroring.
 
-<img src="../attachments/feature4_ss2.png" width="400" alt="Alt text">
+<img src="attachments/feature4_ss2.png" width="400" alt="Alt text">
 
 *Screenshot highlights the screen mirroring icon*
 
-<img src="../attachments/feature4_ss3.png" width="400" alt="Alt text">
+<img src="attachments/feature4_ss3.png" width="400" alt="Alt text">
 
 *Screenshot shows list of targets for screen mirroring*
 

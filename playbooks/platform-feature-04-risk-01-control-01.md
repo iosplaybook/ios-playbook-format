@@ -4,13 +4,13 @@ Your app can prevent the risk of an attacker capturing sensitive information dis
 
 1. Implement the `SecureField` wrapper for sensitive fields such as the `Password` field. This ensures that the field is treated as sensitive instead of being displayed as normal plaintext content.
 
-<img src="../attachments/feature4_risk1_control1_ss1.png" width="400" alt="Alt text">
+<img src="attachments/feature4_risk1_control1_ss1.png" width="400" alt="Alt text">
 
 *Screenshot shows implementation of `SecureField` on the `Password` input*
 
 2. The placeholder for the `Password` field is also no longer shown, indicating that some input exists without revealing the actual value or the number of characters entered. 
 
-<img src="../attachments/feature4_risk1_control1_ss2.png" width="400" alt="Alt text">
+<img src="attachments/feature4_risk1_control1_ss2.png" width="400" alt="Alt text">
 
 *Screenshot shows the username being captured but not the password, even when both fields are filled*
 
