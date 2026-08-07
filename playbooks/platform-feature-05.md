@@ -21,35 +21,41 @@ Set up a physical iOS device with the following configuration:
 
 Perform the following steps to enable Custom Keyboard:
 
-1. Go to `Settings > General > Keyboard > Keyboards > Add New Keyboard`, then select the custom keyboard under `Third-Party Keyboards`. This registers the custom keyboard extension with iOS and makes it available as an input method throughout the system.
+1. Install a custom keyboard on the iPhone. In this example, use the `feature5-local_keyboard.zip` package. This package contains the app and custom keyboard extension used in this document for testing.
+
+2. Download, unzip and open the [feature5-local_keyboard](https://drive.google.com/file/d/1CxwO3OfeliR5JuMiPCdmzg1unFW8JLtP/view?usp=sharing) project in Xcode. Build and run the app on the iPhone. This installs the app that contains the custom keyboard on the device.
 
 <img src="attachments/feature5_ss1.png" width="400" alt="Alt text">
 
-*Screenshot shows step1 of adding a third-party keyboard*
+3. Go to `Settings > General > Keyboard > Keyboards > Add New Keyboard`, then select the custom keyboard under `Third-Party Keyboards`. This registers the custom keyboard extension with iOS and makes it available as an input method throughout the system.
 
 <img src="attachments/feature5_ss2.png" width="400" alt="Alt text">
 
-*Screenshot shows step2 of adding a third-party keyboard*
+*Screenshot shows step1 of adding a third-party keyboard*
 
 <img src="attachments/feature5_ss3.png" width="400" alt="Alt text">
 
-*Screenshot shows step3 of adding a third-party keyboard*
+*Screenshot shows step2 of adding a third-party keyboard*
 
 <img src="attachments/feature5_ss4.png" width="400" alt="Alt text">
 
-*Screenshot shows step4 of adding a third-party keyboard*
+*Screenshot shows step3 of adding a third-party keyboard*
 
 <img src="attachments/feature5_ss5.png" width="400" alt="Alt text">
+
+*Screenshot shows step4 of adding a third-party keyboard*
+
+<img src="attachments/feature5_ss6.png" width="400" alt="Alt text">
 
 *Screenshot shows step5 of adding a third-party keyboard*
 
 2. In the Keyboards list, tap the custom keyboard newly added and enable `Allow Full Access`. This grants the permissions required for full keyboard functionality and allows testing for risks such as keystroke exfiltration.
 
-<img src="attachments/feature5_ss6.png" width="400" alt="Alt text">
+<img src="attachments/feature5_ss7.png" width="400" alt="Alt text">
 
 *Screenshot shows how to access custom keyboard permissions*
 
-<img src="attachments/feature5_ss7.png" width="400" alt="Alt text">
+<img src="attachments/feature5_ss8.png" width="400" alt="Alt text">
 
 *Screenshot shows enabling full access to custom keyboard*
 
