@@ -18,7 +18,7 @@ Set up physical iOS device and macOS workstation with the following configuratio
 
 Perform the following steps to demonstrate the risk of an attacker monitoring data between applications:
 
-1. Use BurpSuite to intercept a request. The intercepted request with data that can be studied to give the attack an idea on how to craft a payload for their attacks
+1. Launch the target app on the iPhone and navigate through its feature flows. In Burp Suite, open `Proxy > HTTP history` and ensure Intercept is turned off so the app runs smoothly. Verify that Burp Suite captures the app's `HTTP` and `HTTPS` traffic.
 
 <img src="attachments/feature3_risk1_ss1.png" width="400" alt="Alt text">
 

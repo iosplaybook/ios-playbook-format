@@ -21,9 +21,7 @@ Set up a physical iOS device with the following configuration:
 
 Perform the following steps to enable Custom Keyboard:
 
-1. Download and install the `feature5-local_keyboard.zip` app to provide the custom keyboard.
-
-2. Navigate `Settings > General > Keyboard > Keyboards > Add New Keyboard > Third-Party Keyboards` to add another keyboard. Select the custom keyboard from the app to add it and start using it.
+1. Go to `Settings > General > Keyboard > Keyboards > Add New Keyboard`, then select the custom keyboard under `Third-Party Keyboards`. This registers the custom keyboard extension with iOS and makes it available as an input method throughout the system.
 
 <img src="attachments/feature5_ss1.png" width="400" alt="Alt text">
 
@@ -45,7 +43,7 @@ Perform the following steps to enable Custom Keyboard:
 
 *Screenshot shows step5 of adding a third-party keyboard*
 
-3. Select the newly added keyboard to open its settings. Enable `Allow Full Access` for the third-party keyboard to grant additional keyboard access.
+2. In the Keyboards list, tap the custom keyboard newly added and enable `Allow Full Access`. This grants the permissions required for full keyboard functionality and allows testing for risks such as keystroke exfiltration.
 
 <img src="attachments/feature5_ss6.png" width="400" alt="Alt text">
 

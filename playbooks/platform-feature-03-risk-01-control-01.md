@@ -2,19 +2,15 @@
 
 Your app can prevent the risk of an attacker monitoring data between applications:
 
-1. By calling `CFNetworkCopySystemProxySettings()`, the current system-wide internet proxy configuration can be retrieved. 
+1. Call `CFNetworkCopySystemProxySettings()` to retrieve the iPhone's current network proxy configuration. This allows the application to detect whether a proxy is configured.
 
 <img src="attachments/feature3_risk1_control1_ss1.png" width="400" alt="Alt text">
 
 *Screenshot shows the source code calling `CFNetworkCopySystemProxySettings()` to retrieve the proxy configuration*
 
-2. The returned dictionary can contain keys such as `HTTPEnable`, `HTTPProxy`, `HTTPPort`, `HTTPSEnable`, `HTTPSProxy`, `HTTPSPort`, `SOCKSEnable`, `SOCKSProxy`, and `SOCKSPort`. If a proxy is configured, the dictionary may contain a value similar to the following:
+2. Inspect the returned settings and check whether `HTTPEnable`, `HTTPSEnable`, or `ProxyAutoConfigEnable` is set to 1. Checking all three settings ensures coverage for HTTP proxies, HTTPS proxies, and Proxy Auto-Configuration (PAC) scripts.
 
-```
-[ "HTTPEnable": 1, "HTTPProxy": "192.168.1.10", "HTTPPort": 8080 ]
-```
-
-3. Create a warning to the user when a proxy configured. This alerts the user to be careful when sending high-risk requests.
+3. If any proxy setting is enabled, trigger an appropriate response. Display a warning to the user, log an alert, or stop the network request. Taking immediate action helps prevent sensitive data from passing through an unverified intermediary that could intercept or modify the traffic.
 
 <img src="attachments/feature3_risk1_control1_ss2.png" width="400" alt="Alt text">
 
