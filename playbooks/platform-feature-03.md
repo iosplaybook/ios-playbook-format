@@ -49,11 +49,33 @@ Perform the following steps to enable HTTP proxy:
 
 *Screenshot shows step3 of configuring a manual proxy*
 
-5. Browse to the URL `http://burpsuite` to download the CA certificate.
+5. Browse to the URL `http://burp` to download the CA certificate. This certificate allows the iPhone to establish trust with the Burp Suite proxy for HTTPS traffic inspection.
 
-6. Install the CA certificate profile on the iPhone.
+<img src="attachments/feature3_ss8.png" width="400" alt="Alt text">
 
-7. Under settings 
+*Screenshot shows `http://burp` view and where to download burp's CA certificate*
+
+6. On the iPhone, go to `Settings > Profile Downloaded` and install the Burp Suite CA certificate profile. Installing the profile adds the certificate to the device so the iPhone can recognise the Burp Suite CA.
+
+<img src="attachments/feature3_ss9.png" width="400" alt="Alt text">
+
+*Screenshot shows step1 of how to download and install the burp CA certificate profile*
+
+<img src="attachments/feature3_ss10.png" width="400" alt="Alt text">
+
+*Screenshot shows step2 of how to download and install the burp CA certificate profile*
+
+<img src="attachments/feature3_ss11.png" width="400" alt="Alt text">
+
+*Screenshot shows step3 of how to download and install the burp CA certificate profile*
+
+<img src="attachments/feature3_ss12.png" width="400" alt="Alt text">
+
+*Screenshot shows step4 of how to download and install the burp CA certificate profile*
+
+<img src="attachments/feature3_ss13.png" width="400" alt="Alt text">
+
+*Screenshot shows step5 of how to download and install the burp CA certificate profile*
 
 Because the iOS platform provides HTTP Proxy Configuration feature, your app is at risk of:
 - [platform-feature-03-risk-01](platform-feature-03-risk-01.md)
