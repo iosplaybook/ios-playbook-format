@@ -24,4 +24,4 @@ Your app can prevent the risk of an attacker monitoring data between application
 
 - https://developer.apple.com/documentation/cfnetwork/cfnetworkcopysystemproxysettings()
 
-The IPA with the implemented control can be found [here](../steps/feature3_risk1_control1.zip).
+The source code with the implemented control can be found [here](implemented_controls/platform-feature-03-risk-01-control-01.zip).
