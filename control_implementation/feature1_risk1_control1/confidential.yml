@@ -1,0 +1,13 @@
+defaultNamespace: create Secrets
+
+secrets:
+  - name: apiKey
+    value: verySecureApiKey
+  
+  - name: demoEmail
+    value: "user@example.com"
+
+  - name: demoPassword
+    value: verySecurePassword
+
+
