@@ -27,6 +27,8 @@ Perform the following steps to enable Custom Keyboard:
 
 <img src="attachments/feature5_ss1.png" width="400" alt="Alt text">
 
+*Screenshot shows LocalKeyboard App opened on Xcode*
+
 3. Go to `Settings > General > Keyboard > Keyboards > Add New Keyboard`, then select the custom keyboard under `Third-Party Keyboards`. This registers the custom keyboard extension with iOS and makes it available as an input method throughout the system.
 
 <img src="attachments/feature5_ss2.png" width="400" alt="Alt text">
