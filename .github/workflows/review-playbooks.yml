@@ -1,7 +1,12 @@
 name: Review Playbooks
 
 on:
+  push:
+    branches:
+      # - main
+      # - draft
   pull_request:
+  workflow_dispatch:
 
 jobs:
   review-playbooks:
@@ -10,6 +15,11 @@ jobs:
       contents: read
       pull-requests: read
       models: read
+
+    env:
+      GITHUB_MODELS_CLARITY_MODEL: openai/gpt-4.1-mini
+      GITHUB_MODELS_FACTCHECK_MODEL: openai/gpt-4.1
+      GITHUB_MODELS_COMPLETENESS_MODEL: openai/gpt-4.1
 
     steps:
       - name: Prepare the submitted materials for review
@@ -28,10 +38,16 @@ jobs:
         run: |
           echo "This review is now checking which playbook documents were changed in this pull request."
           echo "Only Markdown files inside the 'playbooks/' folder are included in this policy review."
-          echo "The review compares this proposal against the base branch so the public can see exactly what documents are under assessment."
+          echo "The review compares pull requests against the base branch, and manual runs review every playbook document."
 
-          git fetch origin "${{ github.base_ref }}" --depth=1
-          files="$(git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" | grep '^playbooks/.*\.md$' || true)"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            files="$(git diff --name-only --diff-filter=ACMR "origin/${{ github.base_ref }}...HEAD" | grep '^playbooks/.*\.md$' || true)"
+          elif [ "${{ github.event_name }}" = "push" ]; then
+            files="$(git diff --name-only --diff-filter=ACMR "${{ github.event.before }}...${{ github.sha }}" | grep '^playbooks/.*\.md$' || true)"
+          else
+            files="$(find playbooks -type f -name '*.md' | sort || true)"
+          fi
 
           if [ -z "$files" ]; then
             echo "Result: no playbook Markdown files were changed in the 'playbooks/' folder."

@@ -39,4 +39,4 @@ Your app can prevent the risk of an attacker analysing the application's IPA fil
 - https://github.com/securevale/swift-confidential.git
 - https://github.com/securevale/swift-confidential-plugin.git
 
-The IPA with the implemented control can be found [here](implemented_controls/platform-feature-01-risk-01-control-01.zip).
+The source code with the implemented control can be found [here](implemented_controls/platform-feature-01-risk-01-control-01.zip).
