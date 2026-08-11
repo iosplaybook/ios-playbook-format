@@ -23,7 +23,7 @@ Perform the following steps to enable Custom Keyboard:
 
 1. Install a custom keyboard on the iPhone. In this example, use the `feature5-local_keyboard.zip` package. This package contains the app and custom keyboard extension used in this document for testing.
 
-2. Download, unzip and open the [feature5-local_keyboard](https://drive.google.com/file/d/1CxwO3OfeliR5JuMiPCdmzg1unFW8JLtP/view?usp=sharing) project in Xcode. Build and run the app on the iPhone. This installs the app that contains the custom keyboard on the device.
+2. Download, unzip and open the [feature5-local_keyboard](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/feature5) project in Xcode. Build and run the app on the iPhone. This installs the app that contains the custom keyboard on the device.
 
 <img src="attachments/feature5_ss1.png" width="400" alt="Alt text">
 
