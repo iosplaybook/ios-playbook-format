@@ -77,5 +77,11 @@ Perform the following steps to enable HTTP proxy:
 
 *Screenshot shows step5 of how to download and install the burp CA certificate profile*
 
+7. After installing the certificate profile, open `Settings > General > About > Certificate Trust Settings` and enable full trust for the Burp Suite CA certificate. This allows the iPhone to trust certificates issued by the Burp Suite CA during HTTPS traffic inspection.
+
+<img src="attachments/feature3_ss14.png" width="400" alt="Alt text">
+
+*Screenshot shows enable full trust for Burp's CA certificate*
+
 Because the iOS platform provides HTTP Proxy Configuration feature, your app is at risk of:
 - [platform-feature-03-risk-01](platform-feature-03-risk-01.md)
