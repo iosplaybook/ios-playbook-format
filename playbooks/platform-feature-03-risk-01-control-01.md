@@ -1,8 +1,8 @@
 ## platform-feature-03-risk-01-control-01
 
-Your app can prevent the risk of an attacker monitoring data between applications:
+Your app can prevent the risk of an attacker monitoring data between apps:
 
-1. Call `CFNetworkCopySystemProxySettings()` to retrieve the iPhone's current network proxy configuration. This allows the application to detect whether a proxy is configured.
+1. Call `CFNetworkCopySystemProxySettings()` to retrieve the iPhone's current network proxy configuration. This allows the app to detect whether a proxy is configured.
 
 <img src="attachments/feature3_risk1_control1_ss1.png" width="400" alt="Alt text">
 

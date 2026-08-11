@@ -6,7 +6,7 @@ The iOS platform provides IPA acquisition feature.
 
 ### Additional context
 
-IPA acquisition is a feature that allows an IPA file to be obtained using [iMazing](https://imazing.com/guides/how-to-manage-apps-without-itunes?utm_medium=app) on macOS, enabling security testers to inspect the application's structure, configuration, permissions, and entitlements.
+IPA acquisition is a feature that allows an IPA file to be obtained using [iMazing](https://imazing.com/guides/how-to-manage-apps-without-itunes?utm_medium=app) on macOS, enabling security testers to inspect the app's structure, configuration, permissions, and entitlements.
 
 ### Demonstration
 

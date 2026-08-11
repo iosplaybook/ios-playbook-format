@@ -1,8 +1,8 @@
 ## platform-feature-01-risk-01-control-02
 
-Your app can prevent the risk of an attacker analysing the application's IPA file by taking the following steps:
+Your app can prevent the risk of an attacker analysing the app's IPA file by taking the following steps:
 
-1. Remove plaintext literals from bundled `.plist` files as application resources can be extracted directly from the IPA using static analysis tools like MobSF. 
+1. Remove plaintext literals from bundled `.plist` files as app resources can be extracted directly from the IPA using static analysis tools like MobSF. 
 
 <img src="attachments/feature1_risk1_control2_ss1.png" width="400" alt="Alt text">
 

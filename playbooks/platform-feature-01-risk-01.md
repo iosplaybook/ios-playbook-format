@@ -2,7 +2,7 @@
 
 ### Description
 
-Because the iOS platform provides IPA acquisition feature, your application is at risk of an attacker analysing the application's IPA file.
+Because the iOS platform provides IPA acquisition feature, your app is at risk of an attacker analysing the app's IPA file.
 
 ### Goal
 
@@ -17,7 +17,7 @@ Set up a workstation with the following configuration:
 | Prerequisite | platform-feature-01 |
 | Workstation | Web browser installed |
 
-Perform the following steps to demonstrate the risk of an attacker analysing the application's IPA file:
+Perform the following steps to demonstrate the risk of an attacker analysing the app's IPA file:
 
 1. Set up Mobile Security Framework (MobSF) to perform static analysis on the `.ipa` file.
 
