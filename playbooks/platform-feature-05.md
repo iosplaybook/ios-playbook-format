@@ -12,22 +12,22 @@ Custom Keyboard is a feature that allows users to install and use third-party ke
 
 Set up a physical iOS device with the following configuration:
 
-| Configuration | Detail                        |
-| ------------- | ----------------------------- |
-| Device Model  | iPhone 15                     |
-| iOS Version   | 17.6                          |
-| Device State  | Non-Jailbroken                |
-| Apps Used     | `feature5-local_keyboard.zip` |
+| Configuration | Detail                    |
+| ------------- | ------------------------- |
+| Device Model  | iPhone 15                 |
+| iOS Version   | 17.6                      |
+| Device State  | Non-Jailbroken            |
+| Apps Used     | `feature5-local_keyboard` |
 
 Perform the following steps to enable Custom Keyboard:
 
-1. Install a custom keyboard on the iPhone. In this example, use the `feature5-local_keyboard.zip` package. This package contains the app and custom keyboard extension used in this document for testing.
+1. Install a custom keyboard on the iPhone. In this example, use the `feature5-local_keyboard` package. This package contains the app and custom keyboard extension used in this document for testing.
 
-2. Download, unzip and open the [feature5-local_keyboard](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/feature5) project in Xcode. Build and run the app on the iPhone. This installs the app that contains the custom keyboard on the device.
+2. Download and open the [feature5-local_keyboard](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/feature5) project in Xcode. Build and run the app on the iPhone. This installs the app that contains the custom keyboard on the device.
 
 <img src="attachments/feature5_ss1.png" width="400" alt="Alt text">
 
-*Screenshot shows LocalKeyboard App opened on Xcode*
+*Screenshot shows feature 5's LocalKeyboard App opened on Xcode*
 
 3. Go to `Settings > General > Keyboard > Keyboards > Add New Keyboard`, then select the custom keyboard under `Third-Party Keyboards`. This registers the custom keyboard extension with iOS and makes it available as an input method throughout the system.
 
