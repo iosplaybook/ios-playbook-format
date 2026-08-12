@@ -19,4 +19,4 @@ Your app can prevent the risk of an attacker sending remote input through a mali
 - [https://developer.apple.com/documentation/localauthentication/accessing-keychain-items-with-face-id-or-touch-id](https://developer.apple.com/documentation/localauthentication/accessing-keychain-items-with-face-id-or-touch-id)
 - [https://developer.apple.com/documentation/localauthentication/logging-a-user-into-your-app-with-face-id-or-touch-id](https://developer.apple.com/documentation/localauthentication/logging-a-user-into-your-app-with-face-id-or-touch-id)
 
-The IPA with the implemented control can be found [here](implemented_controls/platform-feature-05-risk-02-control-02.zip).
+The source code with the implemented control can be found [here](implemented_controls/platform-feature-05-risk-02-control-02.zip).

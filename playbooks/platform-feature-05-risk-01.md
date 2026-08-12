@@ -2,7 +2,7 @@
 
 ### Description
 
-Because the iOS platform provides Custom Keyboard feature, your application is at risk of an attacker capturing user keystrokes through a malicious third-party keyboard.
+Because the iOS platform provides Custom Keyboard feature, your app is at risk of an attacker capturing user keystrokes through a malicious third-party keyboard.
 
 ### Goal
 
@@ -19,9 +19,9 @@ Set up a physical iOS device and macOS workstation with the following configurat
 
 Perform the following steps to demonstrate the risk of an attacker capturing user keystrokes through a malicious third-party keyboard:
 
-1. Open an application that accepts text input and switch to the custom keyboard to allow the custom keyboard to observe keys typed through it. 
+1. Open an app that accepts text input and switch to the custom keyboard to allow the custom keyboard to observe keys typed through it. 
 
-2. Review the stored keystroke logs inside the application container to verify that the custom keyboard acted as a keylogger.
+2. Review the stored keystroke logs inside the app container to verify that the custom keyboard acted as a keylogger.
 
 <img src="attachments/feature5_risk1_ss1.png" width="400" alt="Alt text">
 

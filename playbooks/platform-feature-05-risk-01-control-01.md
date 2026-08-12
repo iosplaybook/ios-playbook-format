@@ -20,4 +20,4 @@ Your app can prevent the risk of an attacker capturing user keystrokes through a
 
 - [https://developer.apple.com/library/archive/documentation/General/Conceptual/ExtensibilityPG/CustomKeyboard.html](https://developer.apple.com/library/archive/documentation/General/Conceptual/ExtensibilityPG/CustomKeyboard.html)
 
-The IPA with the implemented control can be found [here](implemented_controls/platform-feature-05-risk-01-control-01.zip).
+The source code with the implemented control can be found [here](implemented_controls/platform-feature-05-risk-01-control-01.zip).

@@ -17,4 +17,4 @@ Your app can prevent the risk of an attacker capturing sensitive information dis
 References:
 - [https://medium.com/@lakshimi.cg/screenshot-prevention-in-ios-f059dc82b046](https://medium.com/@lakshimi.cg/screenshot-prevention-in-ios-f059dc82b046)
 
-The IPA with the implemented control can be found [here](../steps/feature4_risk1_control1.zip).
+The source code with the implemented control can be found [here](implemented_controls/platform-feature-04-risk-01-control-01.zip).
