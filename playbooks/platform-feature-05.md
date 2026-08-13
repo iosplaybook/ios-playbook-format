@@ -21,13 +21,9 @@ Set up a physical iOS device with the following configuration:
 
 Perform the following steps to enable Custom Keyboard:
 
-1. Install a custom keyboard on the iPhone. In this example, use the `feature5-local_keyboard` package. Download and open the [feature5-local_keyboard](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/feature5) project in Xcode. Build and run the app on the iPhone. This installs the app that contains the custom keyboard on the device.
+1. Download and install a keyboard app like `Gboard` on the iPhone. This provides the third-party keyboard for the test.
 
-<img src="attachments/feature5_ss1.png" width="400" alt="Alt text">
-
-*Screenshot shows feature 5's LocalKeyboard App opened on Xcode*
-
-2. Go to `Settings > General > Keyboard > Keyboards > Add New Keyboard`, then select the custom keyboard under `Third-Party Keyboards`. This registers the custom keyboard extension with iOS and makes it available as an input method throughout the system.
+2. Go to `Settings > General > Keyboard > Keyboards > Add New Keyboard`, then tap \[Keyboard Name] under Third-Party Keyboards. This enables the keyboard for use in apps.
 
 <img src="attachments/feature5_ss2.png" width="400" alt="Alt text">
 
@@ -49,7 +45,7 @@ Perform the following steps to enable Custom Keyboard:
 
 *Screenshot shows step5 of adding a third-party keyboard*
 
-3. In the Keyboards list, tap the custom keyboard newly added and enable `Allow Full Access`. This grants the permissions required for full keyboard functionality and allows testing for risks such as keystroke exfiltration.
+3. In the Keyboards list, tap \[Keyboard Name], then enable Allow Full Access. This grants the permissions required for features such as custom themes and autocomplete.
 
 <img src="attachments/feature5_ss7.png" width="400" alt="Alt text">
 

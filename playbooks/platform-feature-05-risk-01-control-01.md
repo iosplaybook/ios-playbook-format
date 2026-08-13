@@ -2,7 +2,7 @@
 
 Your app can prevent the risk of an attacker capturing user keystrokes through a malicious third-party keyboard by taking the following steps:
 
-1. Implementing `SecureField` for sensitive fields such as passwords, payment secrets, etc. Custom keyboards are not eligible to type into secure text input objects. When a user taps a secure text field, iOS replaces the custom keyboard with the system keyboard.
+1. Replace standard `TextField` inputs for sensitive fields like Password with `SecureField`. This automatically forces iOS to use the default system keyboard, preventing custom third-party keyboards from capturing sensitive inputs.
 
 <img src="attachments/feature5_risk1_control1_ss1.png" width="400" alt="Alt text">
 
