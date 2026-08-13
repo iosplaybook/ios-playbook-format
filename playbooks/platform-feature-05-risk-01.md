@@ -19,9 +19,10 @@ Set up a physical iOS device and macOS workstation with the following configurat
 
 Perform the following steps to demonstrate the risk of an attacker capturing user keystrokes through a malicious third-party keyboard:
 
-1. Install the app on the iPhone. Use Xcode to open the [feature5-local_keyboard](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/feature5) project, then build and run the app on the iPhone. The custom keyboard uses the following to capture and record each keystroke entered by the user:
+1. Install the app on the iPhone. Use Xcode to open the [feature5-local_keyboard](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/feature5) project, then build and run the app on the iPhone.
 
 ``` swift
+// Record each keystroke entered by the user
 KeystrokeStore.append(text)
 ```
 

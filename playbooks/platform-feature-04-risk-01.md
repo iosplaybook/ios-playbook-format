@@ -20,9 +20,6 @@ Set up physical iOS device and macOS workstation with the following configuratio
 Perform the following steps to demonstrate the risk of an attacker capturing sensitive information displayed on the screen:
 
 1. Install the malicious app on the iPhone. Use Xcode to open the [feature4-replay_consent_recorder](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/feature4) project, then build and run the app on the iPhone. 
-	- `BroadcastPickerView()` opens Apple’s screen-recording consent picker. This is what lets the user choose and start the broadcast recording flow. 
-	- After the user starts recording, iOS sends captured screen data to `processSampleBuffer()`.
-	- Inside `processSampleBuffer`, the code checks whether the incoming sample is video. If it is video, this line saves that screen frame into the video recording.
 
 ``` swift
 // Opens Apple's screen-recording consent picker
