@@ -29,7 +29,7 @@ Perform the following steps to enable HTTP proxy:
 
 *Screenshot shows IP Address identified to be used for proxy*
 
-3. On the macOS workstation, open Burp Suite and navigate to `Settings > Tools > Proxy > Proxy listeners`. Edit the active listener or click `Add`. Set Bind to port to `8080` and Bind to IP to `All interfaces`, or select the Mac's local IP address. This allows Burp Suite to accept network traffic from the iPhone.
+3. Open Burp Suite on the macOS workstation. Go to `Settings > Tools > Proxy > Proxy listeners`. Edit the active listener or click `Add`. Set Bind to port to `8080`. Set Bind to IP to All interfaces, or select the Mac's local IP address. This configuration allows Burp Suite to accept network traffic from the iPhone.
 
 <img src="attachments/feature3_ss2.png" width="400" alt="Alt text">
 
@@ -49,7 +49,7 @@ Perform the following steps to enable HTTP proxy:
 
 *Screenshot shows step3 of configuring a manual proxy*
 
-5. Browse to the URL `http://burp` to download the CA certificate. This certificate allows the iPhone to establish trust with the Burp Suite proxy for HTTPS traffic inspection.
+5. Open a web browser on the iPhone and navigate to `http://burp/` while the Burp proxy is configured. Download the Burp Suite CA certificate. The certificate allows Burp Suite to inspect `HTTPS` traffic from applications that trust the installed CA certificate. Note: Apps that use certificate pinning may reject Burp's certificates and prevent `HTTPS` traffic inspection.
 
 <img src="attachments/feature3_ss8.png" width="400" alt="Alt text">
 
