@@ -12,34 +12,48 @@ Custom Keyboard is a feature that allows users to install and use third-party ke
 
 Set up a physical iOS device with the following configuration:
 
-| Configuration | Detail                        |
-| ------------- | ----------------------------- |
-| Device Model  | iPhone 15                     |
-| iOS Version   | 17.6                          |
-| Device State  | Non-Jailbroken                |
-| Apps Used     | `feature5-local_keyboard.zip` |
+| Configuration | Detail                    |
+| ------------- | ------------------------- |
+| Device Model  | iPhone 15                 |
+| iOS Version   | 17.6                      |
+| Device State  | Non-Jailbroken            |
+| Apps Used     | `feature5-local_keyboard` |
 
 Perform the following steps to enable Custom Keyboard:
 
-1. Download and install the app to provide the custom keyboard.
+1. Download and install a keyboard app like `Gboard` on the iPhone. This provides the third-party keyboard for the test.
 
-2. Open **Settings** and go to **General** to access keyboard settings (screenshot 1). Select **Keyboard** to view keyboard options (screenshot 2). Select **Keyboards** to view installed keyboards (screenshot 3). Select **Add New Keyboard** to add another keyboard (screenshot 4). Under **Third-Party Keyboards**, select the custom keyboard from the app to add it (screenshot 5).
-
-<img src="attachments/feature5_ss1.png" width="400" alt="Alt text">
+2. Go to `Settings > General > Keyboard > Keyboards > Add New Keyboard`, then tap \[Keyboard Name] under Third-Party Keyboards. This enables the keyboard for use in apps.
 
 <img src="attachments/feature5_ss2.png" width="400" alt="Alt text">
 
+*Screenshot shows step1 of adding a third-party keyboard*
+
 <img src="attachments/feature5_ss3.png" width="400" alt="Alt text">
+
+*Screenshot shows step2 of adding a third-party keyboard*
 
 <img src="attachments/feature5_ss4.png" width="400" alt="Alt text">
 
+*Screenshot shows step3 of adding a third-party keyboard*
+
 <img src="attachments/feature5_ss5.png" width="400" alt="Alt text">
 
-3. Select the newly added keyboard to open its settings (screenshot 6). Enable **Allow Full Access** for the third-party keyboard to grant additional keyboard access (screenshot 7).
+*Screenshot shows step4 of adding a third-party keyboard*
 
 <img src="attachments/feature5_ss6.png" width="400" alt="Alt text">
 
+*Screenshot shows step5 of adding a third-party keyboard*
+
+3. In the Keyboards list, tap \[Keyboard Name], then enable Allow Full Access. This grants the permissions required for features such as custom themes and autocomplete.
+
 <img src="attachments/feature5_ss7.png" width="400" alt="Alt text">
+
+*Screenshot shows how to access custom keyboard permissions*
+
+<img src="attachments/feature5_ss8.png" width="400" alt="Alt text">
+
+*Screenshot shows enabling full access to custom keyboard*
 
 Because the iOS platform provides Custom Keyboard feature, your app is at risk of:
 

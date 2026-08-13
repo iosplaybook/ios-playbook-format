@@ -2,7 +2,7 @@
 
 ### Description
 
-Because the iOS platform provides Custom Keyboard feature, your application is at risk of an attacker capturing user keystrokes through a malicious third-party keyboard.
+Because the iOS platform provides Custom Keyboard feature, your app is at risk of an attacker capturing user keystrokes through a malicious third-party keyboard.
 
 ### Goal
 
@@ -12,18 +12,33 @@ As a result, this could lead to **_Collection_** - attackers capturing sensitive
 
 Set up a physical iOS device and macOS workstation with the following configuration:
 
-| Configuration          | Detail                                                       |
-| ---------------------- | ------------------------------------------------------------ |
-| Prerequisite           | platform-feature-05                                          |
-| Additional Requirement | User must add the custom keyboard and enable **Full Access** |
+| Configuration          | Detail                                                     |
+| ---------------------- | ---------------------------------------------------------- |
+| Prerequisite           | platform-feature-05                                        |
+| Additional Requirement | User must add the custom keyboard and enable `Full Access` |
 
 Perform the following steps to demonstrate the risk of an attacker capturing user keystrokes through a malicious third-party keyboard:
 
-1. Open an application that accepts text input and switch to the custom keyboard to allow the custom keyboard to observe keys typed through it. Enter sample text using the custom keyboard to record the keystrokes inside the application container.
+1. Install the app on the iPhone. Use Xcode to open the [feature5-local_keyboard](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/feature5) project, then build and run the app on the iPhone.
 
-2. Review the stored keystroke logs inside the application container to verify that the custom keyboard acted as a keylogger (screenshot 1). This demonstrates how a malicious keyboard, disguised as a normal keyboard skin or utility keyboard, could collect sensitive user input if the user adds it and grants the required access.
+``` swift
+// Record each keystroke entered by the user
+KeystrokeStore.append(text)
+```
+
+2. Follow the setup steps under `platform-feature-05` to add the custom keyboard and grant the required permissions. This enables the custom keyboard for use in other apps.
+
+3. Open the target app, tap any text field to open the keyboard, then press and hold the Globe 🌐 icon to select the custom keyboard. This activates the custom keyboard in the target app.
 
 <img src="attachments/feature5_risk1_ss1.png" width="400" alt="Alt text">
+
+*Screenshot shows where to change to a custom keyboard*
+
+4. Enter text into the target app using the custom keyboard, then return to the custom keyboard app to view the captured inputs. This verifies whether the custom keyboard can capture and retain text entered in the target app.
+
+<img src="attachments/feature5_risk1_ss2.png" width="400" alt="Alt text">
+
+*Screenshot shows key strokes logged by the custom keyboard's app*
 
 Feature-05-Risk-01 control measures:
 

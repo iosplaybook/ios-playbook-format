@@ -2,11 +2,11 @@
 
 ### Description
 
-Because the iOS platform provides IPA acquisition feature, your application is at risk of an attacker analysing the application's IPA file.
+Because the iOS platform provides IPA acquisition feature, your app is at risk of an attacker analysing the app's IPA file.
 
 ### Goal
 
-As a result, this could lead to _**Discovery**_ - attackers finding out the IPA's vulnerabilities.
+As a result, this could lead to _**Discovery**_ - attackers finding out the IPA's plaintext literals.
 
 ### Demonstration
 
@@ -17,17 +17,15 @@ Set up a workstation with the following configuration:
 | Prerequisite | platform-feature-01 |
 | Workstation | Web browser installed |
 
-Perform the following steps to demonstrate the risk of an attacker analysing the application's IPA file:
+Perform the following steps to demonstrate the risk of an attacker analysing the app's IPA file:
 
-1. Set up a mobile application analyser like Mobile Security Framework (MobSF) to perform analysis on IPAs.
+1. Set up Mobile Security Framework (MobSF) to perform static analysis on the `.ipa` file.
 
-```shell
-docker run -it --rm -p 8000:8000 opensecurity/mobile-security-framework-mobsf
-```
+2. Upload the `.ipa` file to MobSF and review the static analysis report for the app's overall security score, configuration issues, and sensitive information, such as hardcoded keys, embedded URLs, and other exposed data.
 
-2. Upload a target IPA to initiate the analysis. Look through the generated report to look for vulnerabilities and sensitive information. Below shows an example of exposed hardcoded secrets within an IPA file (screenshot 1).
+<img src="attachments/feature1_risk1_ss1.png" width="400" alt="Alt text">
 
-<img src="attachments/feature1_Risk1_ss1.png" width="400" alt="Alt text">
+*Screenshot shows possible exposed credentials and api key found by MobSF*
 
 Feature-01-Risk-01 control measures:
 
