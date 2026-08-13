@@ -19,27 +19,40 @@ Set up physical iOS device and macOS workstation with the following configuratio
 
 Perform the following steps to demonstrate the risk of an attacker capturing sensitive information displayed on the screen:
 
-1. Install the malicious app on the iPhone. In this example, use the `feature4-replay_consent_recorder` package. Download and open the [feature4-replay_consent_recorder](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/feature4) project in Xcode. Build and run the app on the iPhone. This app provides the test environment for evaluating how sensitive information behaves during screen recording.
+1. Install the malicious app on the iPhone. Use Xcode to open the [feature4-replay_consent_recorder](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/feature4) project, then build and run the app on the iPhone. 
+	- `BroadcastPickerView()` opens Apple’s screen-recording consent picker. This is what lets the user choose and start the broadcast recording flow. 
+	- After the user starts recording, iOS sends captured screen data to `processSampleBuffer()`.
+	- Inside `processSampleBuffer`, the code checks whether the incoming sample is video. If it is video, this line saves that screen frame into the video recording.
 
-2. Enter information into any app's interface. This provides content that you can observe during screen recording. If the app does not protect sensitive information correctly, the recorded content may expose that information.
+``` swift
+// Opens Apple's screen-recording consent picker
+BroadcastPickerView(isEnabled: true, activationID: phoneRecordingRequestID)
 
-<img src="attachments/feature4_risk1_ss1.png" width="400" alt="Sensitive information visible in screenshot">
+// Receives screen frames from iOS and saves into file
+override func processSampleBuffer(_ sampleBuffer: CMSampleBuffer, with sampleBufferType: RPSampleBufferType) {
+    if sampleBufferType == .video {
+        videoInput?.append(sampleBuffer)
+    }
+}
+```
 
-*Screenshot shows visible username and blanked out password fields when both fields are filled*
+2. Tap `Start App Screen Recording`. When the system prompt appears, tap `Start Broadcast` to authorise and begin the recording.
 
-3. On the malicious app, tap on "`Start App Screen Recording`" to start the screen recording. The malicious app can automatically take screenshots during the screen recording even when it is moved to the background, potentially exposing sensitive information shown on screen. 
-
-<img src="attachments/feature4_risk1_ss2.png" width="400" alt="Replay Recorder app login screen">
+<img src="attachments/feature4_risk1_ss1.png" width="400" alt="Replay Recorder app login screen">
 
 *Screenshot shows notification from the app of the last screenshot saved*
 
-4. Start screen recording when prompted. The screen recording feature displays a system popup and requires the user to press the `Start Broadcast` button before recording begins.
-
-<img src="attachments/feature4_risk1_ss3.png" width="400" alt="Screen recording start broadcast prompt">
+<img src="attachments/feature4_risk1_ss2.png" width="400" alt="Screen recording start broadcast prompt">
 
 *Screenshot shows screen mirroring popup*
 
-5. The captured images and videos are stored in the app container instead of the local Photos album and remain persistent even when the app is force closed. This allows malicious actors to capture sensitive information outside of the malicious app. 
+3. Switch to the target app and enter or display information while the recording continues. This tests whether an authorised recording session from another malicious app can capture information displayed in the target app.
+
+4. Stop the recording and review the recorded images and videos. Check whether the captured content includes sensitive information displayed in the target app.
+
+<img src="attachments/feature4_risk1_ss3.png" width="400" alt="Sensitive information visible in screenshot">
+
+*Screenshot shows visible username and blanked out password fields when both fields are filled*
 
 <img src="attachments/feature4_risk1_ss4.png" width="400" alt="Captured screenshots and recordings saved in app container">
 
