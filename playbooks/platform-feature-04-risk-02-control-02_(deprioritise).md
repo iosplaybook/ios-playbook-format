@@ -1,4 +1,4 @@
-## platform-feature-05-risk-02-control-02
+## platform-feature-04-risk-02-control-02
 
 Your app can prevent the risk of an attacker sending remote input through a malicious third-party keyboard connected to a command server by taking the following steps:
 

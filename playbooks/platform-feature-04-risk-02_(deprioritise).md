@@ -1,4 +1,4 @@
-## platform-feature-05-risk-02
+## platform-feature-04-risk-02
 
 ### Description
 
@@ -34,5 +34,5 @@ Perform the following steps to demonstrate the risk of an attacker sending remot
 
 Feature-05-Risk-02 control measures:
 
-- [platform-feature-05-risk-02-control-01](platform-feature-05-risk-02-control-01.md)
-- [platform-feature-05-risk-02-control-02](platform-feature-05-risk-02-control-02.md)
+- [platform-feature-04-risk-02-control-01_(deprioritise)](platform-feature-04-risk-02-control-01_(deprioritise).md)
+- [platform-feature-04-risk-02-control-02_(deprioritise)](platform-feature-04-risk-02-control-02_(deprioritise).md)
