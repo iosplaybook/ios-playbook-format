@@ -4,15 +4,15 @@ Your app can prevent the risk of an attacker capturing user keystrokes through a
 
 1. Replace standard `TextField` inputs for sensitive fields like Password with `SecureField`. This automatically forces iOS to use the default system keyboard, preventing custom third-party keyboards from capturing sensitive inputs.
 
-<img src="attachments/feature5_risk1_control1_ss1.png" width="400" alt="Alt text">
+<img src="attachments/feature4_risk1_control1_ss1.png" width="400" alt="Alt text">
 
 *Screenshot shows regular input using a custom keyboard*
 
-<img src="attachments/feature5_risk1_control1_ss2.png" width="400" alt="Alt text">
+<img src="attachments/feature4_risk1_control1_ss2.png" width="400" alt="Alt text">
 
 *Screenshot shows secret input being selected but the keyboard is not being shown due to the implementation of `SecureField`*
 
-<img src="attachments/feature5_risk1_control1_ss3.png" width="400" alt="Alt text">
+<img src="attachments/feature4_risk1_control1_ss3.png" width="400" alt="Alt text">
 
 *Screenshot shows implementation of `SecureField`*
 

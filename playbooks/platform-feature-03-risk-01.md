@@ -14,7 +14,7 @@ Set up physical iOS device and macOS workstation with the following configuratio
 
 | Configuration | Detail                             |
 | ------------- | ---------------------------------- |
-| Prerequisite  | platform-feature-04                |
+| Prerequisite  | platform-feature-03                |
 | Malicious App | `feature4-replay_consent_recorder` |
 
 Perform the following steps to demonstrate the risk of an attacker capturing sensitive information displayed on the screen:
