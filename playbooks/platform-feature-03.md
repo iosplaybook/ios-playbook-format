@@ -1,25 +1,21 @@
 ## platform-feature-03
 ### Description
 
-The iOS platform provides screen capture feature.
+Capture on-screen content
 
 ### Additional Context
 
 Screen capture and screen mirroring allow the device screen to be captured or displayed on another device through screenshots, screen recording, or AirPlay screen mirroring. This may expose sensitive information shown on the screen, such as usernames, email addresses, or other personal identifiable information.
 
 ### Demonstration
+#### 01. Prepare the environment
 
-Set up a physical iOS device with the following configuration:
+Set up the required environment with:
+* A physical iPhone 15 running iOS 17.6
 
-| Configuration | Detail         |
-| ------------- | -------------- |
-| Device Model  | iPhone 15      |
-| iOS Version   | 17.6           |
-| Device State  | Non-Jailbroken |
+#### 02. Capture on-screen content
 
-Perform the following steps to enable screen capture:
-
-1. Open the target app on the iPhone and capture the app interface using one of the following methods:
+Open the target app on the iPhone and capture the app interface using one of the following methods:
 
 | Action            | Method                                                                                                                                                                                                                                                                                                                    |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
