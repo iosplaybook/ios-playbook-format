@@ -1,8 +1,13 @@
 ## platform-feature-04-risk-01-control-01
 
-Your app can prevent the risk of an attacker capturing user keystrokes through a malicious third-party keyboard by taking the following steps:
+### Description
 
-1. Replace standard `TextField` inputs for sensitive fields like Password with `SecureField`. This automatically forces iOS to use the default system keyboard, preventing custom third-party keyboards from capturing sensitive inputs.
+Protect sensitive text fields
+
+### Demonstration
+#### 01. Protect sensitive text fields
+
+Replace standard `TextField` inputs for sensitive fields like Password with `SecureField`. This automatically forces iOS to use the default system keyboard, preventing custom third-party keyboards from capturing sensitive inputs.
 
 <img src="attachments/feature4_risk1_control1_ss1.png" width="400" alt="Alt text">
 

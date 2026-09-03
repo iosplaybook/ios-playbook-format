@@ -1,8 +1,13 @@
 ## platform-feature-03-risk-01-control-01
 
-Your app can prevent the risk of an attacker capturing sensitive information displayed on the screen:
+### Description
 
-1. Replace standard `TextField` inputs for sensitive fields like `Password` with `SecureField`. This automatically prevents the password from showing up in screen recordings, screen shares, or screenshots.
+Protect sensitive text fields
+
+### Demonstration
+#### 01. Protect sensitive text fields
+
+Replace standard `TextField` inputs for sensitive fields like `Password` with `SecureField`. This automatically prevents the password from showing up in screen recordings, screen shares, or screenshots.
 
 <img src="attachments/feature3_risk1_control1_ss1.png" width="400" alt="Alt text">
 

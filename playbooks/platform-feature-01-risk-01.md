@@ -2,7 +2,7 @@
 
 ### Description
 
-Because the iOS platform provides IPA acquisition feature, your app is at risk of an attacker analysing the app's IPA file.
+Analyse the IPA
 
 ### Goal
 
@@ -10,18 +10,53 @@ As a result, this could lead to _**Discovery**_ - attackers finding out the IPA'
 
 ### Demonstration
 
-Set up a workstation with the following configuration:
+#### 01. Prepare the environment
 
-| Configuration | Detail |
-| -------- | ------- |
-| Prerequisite | platform-feature-01 |
-| Workstation | Web browser installed |
+Set up the required environment with:
+* A physical iPhone 15 running iOS 17.6
+* A physical macOS workstation with Apple Configurator and Terminal
+* A target app installed on the iPhone
+* A MobSF instance running and accessible through a web browser
 
-Perform the following steps to demonstrate the risk of an attacker analysing the app's IPA file:
+#### 02. Provide access to app
 
-1. Set up Mobile Security Framework (MobSF) to perform static analysis on the `.ipa` file.
+Sign in to the same Apple ID on both the physical iOS device and the macOS workstation. This ensures Apple Configurator can access the app licenses and deploy apps associated with the Apple ID.
 
-2. Upload the `.ipa` file to MobSF and review the static analysis report for the app's overall security score, configuration issues, and sensitive information, such as hardcoded keys, embedded URLs, and other exposed data.
+#### 03. Trigger IPA download
+
+Connect the iPhone to the macOS workstation and open Apple Configurator. Select the connected device, open the Apps tab, click Add, and search for the target app. Adding the app causes Apple Configurator to download the current production package from Apple's servers and temporarily store it in the local cache.
+
+<img src="attachments/feature1_ss1_apple_config.png" width="500" alt="Alt text">
+
+*Screenshot shows connect device on Apple Configurator*
+
+<img src="attachments/feature1_ss2_apple_config.png" width="500" alt="Alt text">
+
+*Screenshot shows `Apps` tab on connected device on Apple Configurator*
+
+<img src="attachments/feature1_ss3_apple_config.png" width="500" alt="Alt text">
+
+*Screenshot shows the selection of `+ > Apps` selection on Apple Configurator*
+
+<img src="attachments/feature1_ss4_apple_config.png" width="500" alt="Alt text">
+
+*Screenshot shows list of Apps on Apple Configurator*
+
+#### 04. Save IPA
+
+On the macOS workstation, open Terminal and navigate to the Apple Configurator temporary cache directory for the newly created .ipa file. Copy the file to your designated analysis workspace for static inspection and examination of its package structure.
+
+<img src="attachments/feature1_ss5_apple_config.png" width="500" alt="Alt text">
+
+``` shell
+~/Library/Group\ Containers/K36BKF7T3D.group.com.apple.configurator/Library/Caches/Assets/TemporaryItems/MobileApps/
+```
+
+*Screenshot shows Singpass app in the cache directory*
+
+#### 05. Analyse the IPA
+
+Upload the .ipa file to MobSF and review the static analysis report for the app's overall security score, configuration issues, and sensitive information, such as hardcoded keys, embedded URLs, and other exposed data.
 
 <img src="attachments/feature1_risk1_ss1.png" width="400" alt="Alt text">
 

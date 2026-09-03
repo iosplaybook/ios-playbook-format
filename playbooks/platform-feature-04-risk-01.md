@@ -2,39 +2,76 @@
 
 ### Description
 
-Because the iOS platform provides Custom Keyboard feature, your app is at risk of an attacker capturing user keystrokes through a malicious third-party keyboard.
+Capture text input
 
 ### Goal
 
 As a result, this could lead to **_Collection_** - attackers capturing sensitive information entered by the user.
 
 ### Demonstration
+#### 01. Prepare the environment
 
-Set up a physical iOS device and macOS workstation with the following configuration:
+Set up the required environment with:
+* A physical iPhone 15 running iOS 17.6
+* A physical macOS workstation with Xcode
+* A target app installed on the iPhone
 
-| Configuration          | Detail                                                     |
-| ---------------------- | ---------------------------------------------------------- |
-| Prerequisite           | platform-feature-04                                        |
-| Additional Requirement | User must add the custom keyboard and enable `Full Access` |
+#### 02. Install custom keyboard app
 
-Perform the following steps to demonstrate the risk of an attacker capturing user keystrokes through a malicious third-party keyboard:
-
-1. Install the app on the iPhone. Use Xcode to open the [feature4-localkeyboard](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/localkeyboard) project, then build and run the app on the iPhone.
+Install the custom keyboard app on the iPhone. Use Xcode to open the [feature4-localkeyboard](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/localkeyboard) project, then build and run the app on the iPhone.
 
 ``` swift
 // Record each keystroke entered by the user
 KeystrokeStore.append(text)
 ```
 
-2. Follow the setup steps under `platform-feature-05` to add the custom keyboard and grant the required permissions. This enables the custom keyboard for use in other apps.
+#### 03. Add custom keyboard to iPhone
 
-3. Open the target app, tap any text field to open the keyboard, then press and hold the Globe 🌐 icon to select the custom keyboard. This activates the custom keyboard in the target app.
+Go to `Settings > General > Keyboard > Keyboards > Add New Keyboard`, then tap \[Keyboard Name] under Third-Party Keyboards. This enables the keyboard for use in apps.
+
+<img src="attachments/feature5_ss2.png" width="400" alt="Alt text">
+
+*Screenshot shows step1 of adding a third-party keyboard*
+
+<img src="attachments/feature5_ss3.png" width="400" alt="Alt text">
+
+*Screenshot shows step2 of adding a third-party keyboard*
+
+<img src="attachments/feature5_ss4.png" width="400" alt="Alt text">
+
+*Screenshot shows step3 of adding a third-party keyboard*
+
+<img src="attachments/feature5_ss5.png" width="400" alt="Alt text">
+
+*Screenshot shows step4 of adding a third-party keyboard*
+
+<img src="attachments/feature5_ss6.png" width="400" alt="Alt text">
+
+*Screenshot shows step5 of adding a third-party keyboard*
+
+#### 04. Give custom keyboard full access
+
+In the Keyboards list, tap \[Keyboard Name], then enable Allow Full Access. This grants the permissions required for features such as custom themes and autocomplete.
+
+<img src="attachments/feature5_ss7.png" width="400" alt="Alt text">
+
+*Screenshot shows how to access custom keyboard permissions*
+
+<img src="attachments/feature5_ss8.png" width="400" alt="Alt text">
+
+*Screenshot shows enabling full access to custom keyboard*
+
+#### 05. Switch to custom keyboard
+
+Open the target app, tap any text field to open the keyboard, then press and hold the Globe 🌐 icon to select the custom keyboard. This activates the custom keyboard in the target app.
 
 <img src="attachments/feature4_risk1_ss1.png" width="400" alt="Alt text">
 
 *Screenshot shows where to change to a custom keyboard*
 
-4. Enter text into the target app using the custom keyboard, then return to the custom keyboard app to view the captured inputs. This verifies whether the custom keyboard can capture and retain text entered in the target app.
+#### 06. Check for captured text
+
+Enter text into the target app using the custom keyboard, then return to the custom keyboard app to view the captured inputs. This verifies whether the custom keyboard can capture and retain text entered in the target app.
 
 <img src="attachments/feature4_risk1_ss2.png" width="400" alt="Alt text">
 

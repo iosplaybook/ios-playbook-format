@@ -2,28 +2,26 @@
 
 ### Description
 
-The iOS platform provides Custom Keyboard feature.
+Install custom keyboard app
 
 ### Additional context
 
 Custom Keyboard is a feature that allows users to install and use third-party keyboards from an app, select them for text input across supported apps, and grant additional access when Allow Full Access is enabled.
 
 ### Demonstration
+#### 01. Prepare the environment
 
-Set up a physical iOS device with the following configuration:
+Set up the required environment with:
+* A physical iPhone 15 running iOS 17.6
+* A target app installed on the iPhone
 
-| Configuration | Detail                    |
-| ------------- | ------------------------- |
-| Device Model  | iPhone 15                 |
-| iOS Version   | 17.6                      |
-| Device State  | Non-Jailbroken            |
-| Apps Used     | `feature5-local_keyboard` |
+#### 02. Install custom keyboard app
 
-Perform the following steps to enable Custom Keyboard:
+Download and install a keyboard app like `Gboard` on the iPhone. This provides the third-party keyboard for the test.
 
-1. Download and install a keyboard app like `Gboard` on the iPhone. This provides the third-party keyboard for the test.
+#### 03. Add custom keyboard to iPhone
 
-2. Go to `Settings > General > Keyboard > Keyboards > Add New Keyboard`, then tap \[Keyboard Name] under Third-Party Keyboards. This enables the keyboard for use in apps.
+Go to `Settings > General > Keyboard > Keyboards > Add New Keyboard`, then tap \[Keyboard Name] under Third-Party Keyboards. This enables the keyboard for use in apps.
 
 <img src="attachments/feature5_ss2.png" width="400" alt="Alt text">
 
@@ -45,7 +43,9 @@ Perform the following steps to enable Custom Keyboard:
 
 *Screenshot shows step5 of adding a third-party keyboard*
 
-3. In the Keyboards list, tap \[Keyboard Name], then enable Allow Full Access. This grants the permissions required for features such as custom themes and autocomplete.
+#### 04. Give custom keyboard full access
+
+In the Keyboards list, tap \[Keyboard Name], then enable Allow Full Access. This grants the permissions required for features such as custom themes and autocomplete.
 
 <img src="attachments/feature5_ss7.png" width="400" alt="Alt text">
 
@@ -54,6 +54,14 @@ Perform the following steps to enable Custom Keyboard:
 <img src="attachments/feature5_ss8.png" width="400" alt="Alt text">
 
 *Screenshot shows enabling full access to custom keyboard*
+
+#### 05. Switch to custom keyboard
+
+Open the target app, tap any text field to open the keyboard, then press and hold the Globe 🌐 icon to select the custom keyboard. This activates the custom keyboard in the target app.
+
+<img src="attachments/feature4_risk1_ss1.png" width="400" alt="Alt text">
+
+*Screenshot shows where to change to a custom keyboard*
 
 Because the iOS platform provides Custom Keyboard feature, your app is at risk of:
 

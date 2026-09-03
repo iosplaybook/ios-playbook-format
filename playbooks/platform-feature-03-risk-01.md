@@ -2,24 +2,23 @@
 
 ### Description
 
-Because the iOS platform provides screen capture feature, your app is at risk of an attacker an attacker capturing sensitive information displayed on the screen.
+Capture on-screen content
 
 ### Goal
 
 As a result, this could lead to ***Collection*** - attackers capturing sensitive information displayed on screen.
 
 ### Demonstration
+#### 01. Prepare the environment
 
-Set up physical iOS device and macOS workstation with the following configuration:
+Set up the required environment with:
+* A physical iPhone 15 running iOS 17.6
+* A physical macOS workstation with Xcode
+* A target app installed on the iPhone
 
-| Configuration | Detail                             |
-| ------------- | ---------------------------------- |
-| Prerequisite  | platform-feature-03                |
-| Malicious App | `feature4-replay_consent_recorder` |
+#### 02. Install screen recording app
 
-Perform the following steps to demonstrate the risk of an attacker capturing sensitive information displayed on the screen:
-
-1. Install the malicious app on the iPhone. Use Xcode to open the [feature4-replay_consent_recorder](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/feature4) project, then build and run the app on the iPhone. 
+Install the screen recording app on the iPhone. Use Xcode to open the [feature4-replay_consent_recorder](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/feature4) project, then build and run the app on the iPhone. 
 
 ``` swift
 // Opens Apple's screen-recording consent picker
@@ -33,7 +32,9 @@ override func processSampleBuffer(_ sampleBuffer: CMSampleBuffer, with sampleBuf
 }
 ```
 
-2. Tap `Start App Screen Recording`. When the system prompt appears, tap `Start Broadcast` to authorise and begin the recording.
+#### 03. Start screen recording
+
+Tap `Start App Screen Recording`. When the system prompt appears, tap `Start Broadcast` to authorise and begin the recording.
 
 <img src="attachments/feature4_risk1_ss1.png" width="400" alt="Replay Recorder app login screen">
 
@@ -43,9 +44,13 @@ override func processSampleBuffer(_ sampleBuffer: CMSampleBuffer, with sampleBuf
 
 *Screenshot shows screen mirroring popup*
 
-3. Switch to the target app and enter or display information while the recording continues. This tests whether an authorised recording session from another malicious app can capture information displayed in the target app.
+#### 04. Reveal information in target app
 
-4. Stop the recording and review the recorded images and videos. Check whether the captured content includes sensitive information displayed in the target app.
+Switch to the target app and enter or display information while the recording continues. This tests whether an authorised recording session from another malicious app can capture information displayed in the target app.
+
+#### 05. Check for sensitive information
+
+Stop the recording and review the recorded images and videos. Check whether the captured content includes sensitive information displayed in the target app.
 
 <img src="attachments/feature4_risk1_ss3.png" width="400" alt="Sensitive information visible in screenshot">
 

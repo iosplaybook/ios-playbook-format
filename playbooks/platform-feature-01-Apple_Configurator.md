@@ -2,36 +2,27 @@
 
 ### Description
 
-The iOS platform provides IPA acquisition feature.
+Retrieve an IPA
 
 ### Additional context
 
 IPA acquisition is a feature that allows an IPA file to be obtained using Apple Configurator on macOS, enabling security testers to inspect the app's structure, configuration, permissions, and entitlements.
 
 ### Demonstration
+#### 01. Prepare the environment
 
-Set up a physical iOS device with the following configuration:
+Set up the required environment with:
+* A physical iPhone 15 running iOS 17.6
+* A physical macOS workstation with Apple Configurator and Terminal
+* A target app installed on the iPhone
 
-| Configuration | Detail         |
-| ------------- | -------------- |
-| Device model  | iPhone 15      |
-| iOS Version   | 17.6           |
-| Device State  | Non-Jailbroken |
-| App Used      | Singpass       |
+#### 02. Provide access to app
 
-Perform the following steps to enable IPA acquisition:
+Sign in to the same Apple ID on both the physical iOS device and the macOS workstation. This ensures Apple Configurator can access the app licenses and deploy apps associated with the Apple ID.
 
-1. Sign in to the same Apple ID on both the physical iOS device and the macOS workstation. This ensures Apple Configurator can access the app licenses and deploy apps associated with the Apple ID.
+#### 03. Trigger IPA download
 
-2. On the macOS workstation, open Terminal and navigate to the Apple Configurator temporary cache directory (shown below). Keep this directory open so you can observe newly created files before the temporary cache is cleared.
-
-``` shell
-~/Library/Group\ Containers/K36BKF7T3D.group.com.apple.configurator/Library/Caches/Assets/TemporaryItems/MobileApps/
-```
-
-*Temporary Cache Directory*
-
-3. Connect the iPhone to the macOS workstation and open Apple Configurator. Select the connected device, open the Apps tab, click Add, and search for the target app. Adding the app causes Apple Configurator to download the current production package from Apple's servers and temporarily store it in the local cache.
+Connect the iPhone to the macOS workstation and open Apple Configurator. Select the connected device, open the Apps tab, click Add, and search for the target app. Adding the app causes Apple Configurator to download the current production package from Apple's servers and temporarily store it in the local cache.
 
 <img src="attachments/feature1_ss1_apple_config.png" width="500" alt="Alt text">
 
@@ -49,9 +40,15 @@ Perform the following steps to enable IPA acquisition:
 
 *Screenshot shows list of Apps on Apple Configurator*
 
-4. Monitor the active cache subdirectory in Terminal for the newly created .ipa file. Once it appears, copy the file to your designated analysis workspace for static inspection and examination of its package structure.
+#### 04. Save IPA
+
+On the macOS workstation, open Terminal and navigate to the Apple Configurator temporary cache directory for the newly created .ipa file. Copy the file to your designated analysis workspace for static inspection and examination of its package structure.
 
 <img src="attachments/feature1_ss5_apple_config.png" width="500" alt="Alt text">
+
+``` shell
+~/Library/Group\ Containers/K36BKF7T3D.group.com.apple.configurator/Library/Caches/Assets/TemporaryItems/MobileApps/
+```
 
 *Screenshot shows Singpass app in the cache directory*
 
