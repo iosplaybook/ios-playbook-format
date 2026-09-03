@@ -1,6 +1,6 @@
 ## platform-feature-01-risk-01-control-01
 
-Your app can prevent the risk of an attacker analysing the application's IPA file by taking the following steps:
+Your app can prevent the risk of an attacker analysing the app's IPA file by taking the following steps:
 
 1. Set up the Swift Confidential build plugin in Xcode. This allows the plugin to access the app's source code and replace plaintext literals with obfuscated code during the build.
 

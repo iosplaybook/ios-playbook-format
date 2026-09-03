@@ -2,46 +2,44 @@
 
 ### Description
 
-Because the iOS platform provides screen capture feature, your application is at risk of an attacker an attacker capturing sensitive information displayed on the screen.
+Because the iOS platform provides Custom Keyboard feature, your app is at risk of an attacker capturing user keystrokes through a malicious third-party keyboard.
 
 ### Goal
 
-As a result, this could lead to ***Collection*** - attackers capturing sensitive information displayed on screen.
+As a result, this could lead to **_Collection_** - attackers capturing sensitive information entered by the user.
 
 ### Demonstration
 
-Set up physical iOS device and macOS workstation with the following configuration:
+Set up a physical iOS device and macOS workstation with the following configuration:
 
-| Configuration | Detail                               |
-| ------------- | ------------------------------------ |
-| Prerequisite  | platform-feature-04                  |
-| Malicious App | `feature4_risk1_bg-ss_malicious.zip` |
+| Configuration          | Detail                                                     |
+| ---------------------- | ---------------------------------------------------------- |
+| Prerequisite           | platform-feature-04                                        |
+| Additional Requirement | User must add the custom keyboard and enable `Full Access` |
 
-Perform the following steps to demonstrate the risk of an attacker capturing sensitive information displayed on the screen:
+Perform the following steps to demonstrate the risk of an attacker capturing user keystrokes through a malicious third-party keyboard:
 
-1. Enter information into the application interface. If not configured correctly, sensitive information can appear during screen capture.  
+1. Install the app on the iPhone. Use Xcode to open the [feature4-localkeyboard](https://github.com/zhiyi-school/iosplaybook_sideload/tree/main/localkeyboard) project, then build and run the app on the iPhone.
 
-<img src="attachments/feature4_risk1_ss1.png" width="400" alt="Sensitive information visible in screenshot">
+``` swift
+// Record each keystroke entered by the user
+KeystrokeStore.append(text)
+```
 
-*Screenshot shows visible username and blanked out password fields when both fields are filled*
+2. Follow the setup steps under `platform-feature-05` to add the custom keyboard and grant the required permissions. This enables the custom keyboard for use in other apps.
 
-2. Install and launch the malicious app. Tap on "`Start App Screen Recording`" to start the screen recording. The malicious app can automatically take screenshots during the screen recording even when it is moved to the background, potentially exposing sensitive information shown on screen. 
+3. Open the target app, tap any text field to open the keyboard, then press and hold the Globe 🌐 icon to select the custom keyboard. This activates the custom keyboard in the target app.
 
-<img src="attachments/feature4_risk1_ss2.png" width="400" alt="Replay Recorder application login screen">
+<img src="attachments/feature4_risk1_ss1.png" width="400" alt="Alt text">
 
-*Screenshot shows notification from the app of the last screenshot saved*
+*Screenshot shows where to change to a custom keyboard*
 
-3. Start screen recording when prompted. The screen recording feature displays a system popup and requires the user to press the `Start Broadcast` button before recording begins.
+4. Enter text into the target app using the custom keyboard, then return to the custom keyboard app to view the captured inputs. This verifies whether the custom keyboard can capture and retain text entered in the target app.
 
-<img src="attachments/feature4_risk1_ss3.png" width="400" alt="Screen recording start broadcast prompt">
+<img src="attachments/feature4_risk1_ss2.png" width="400" alt="Alt text">
 
-*Screenshot shows screen mirroring popup*
+*Screenshot shows key strokes logged by the custom keyboard's app*
 
-4. The captured images and videos are stored in the app container instead of the local Photos album and remain persistent even when the application is force closed. This allows malicious actors to capture sensitive information outside of the malicious app. 
+Feature-04-Risk-01 control measures:
 
-<img src="attachments/feature4_risk1_ss4.png" width="400" alt="Captured screenshots and recordings saved in app container">
-
-*Screenshot shows list of screen recording and screenshots taken by the malicious app*
-
-Feature-04-Risk-01 Control Measures:
-- [Platform_Feature-04-Risk-01-Control-01](Platform_Feature-04-Risk-01-Control-01.md)
+- [platform-feature-04-risk-01-control-01](platform-feature-04-risk-01-control-01.md)

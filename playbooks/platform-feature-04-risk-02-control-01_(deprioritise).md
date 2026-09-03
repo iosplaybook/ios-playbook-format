@@ -1,4 +1,4 @@
-## platform-feature-05-risk-02-control-01
+## platform-feature-04-risk-02-control-01
 
 Your app can prevent the risk of an attacker sending remote input through a malicious third-party keyboard connected to a command server by taking the following steps:
 
@@ -14,7 +14,7 @@ Your app can prevent the risk of an attacker sending remote input through a mali
 
 <img src="attachments/feature5_risk2_control1_ss2.png" width="400" alt="Alt text">
 
-*Screenshot shows validation for the special character `\n`*
+*Screenshot shows validation for the special and hidden characters*
 
 <img src="attachments/feature5_risk2_control1_ss3.png" width="400" alt="Alt text">
 
@@ -26,4 +26,4 @@ Your app can prevent the risk of an attacker sending remote input through a mali
 
 ### References
 
-The IPA with the implemented control can be found [here](implemented_controls/platform-feature-05-risk-02-control-01.zip).
+The source code with the implemented control can be found [here](implemented_controls/platform-feature-05-risk-02-control-01.zip).

@@ -1,45 +1,61 @@
 ## platform-feature-04
+
 ### Description
 
-The iOS platform provides screen capture feature.
+The iOS platform provides Custom Keyboard feature.
 
-### Additional Context
+### Additional context
 
-Screen capture and screen mirroring allow the device screen to be captured or displayed on another device through screenshots, screen recording, or AirPlay screen mirroring. This may expose sensitive information shown on the screen, such as usernames, email addresses, or other personal identifiable information.
+Custom Keyboard is a feature that allows users to install and use third-party keyboards from an app, select them for text input across supported apps, and grant additional access when Allow Full Access is enabled.
 
 ### Demonstration
 
 Set up a physical iOS device with the following configuration:
 
-| Configuration | Detail         |
-| ------------- | -------------- |
-| Device Model  | iPhone 15      |
-| iOS Version   | 17.6           |
-| Device State  | Non-Jailbroken |
+| Configuration | Detail                    |
+| ------------- | ------------------------- |
+| Device Model  | iPhone 15                 |
+| iOS Version   | 17.6                      |
+| Device State  | Non-Jailbroken            |
+| Apps Used     | `feature5-local_keyboard` |
 
-Perform the following steps to enable screen capture:
+Perform the following steps to enable Custom Keyboard:
 
-1. Open the target app on the iPhone.
+1. Download and install a keyboard app like `Gboard` on the iPhone. This provides the third-party keyboard for the test.
 
-2. Capture the app interface using one of the following methods:
+2. Go to `Settings > General > Keyboard > Keyboards > Add New Keyboard`, then tap \[Keyboard Name] under Third-Party Keyboards. This enables the keyboard for use in apps.
 
-| Action            | Method                                                                                                                                                                                                                                                                                                                    |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Screenshot        | Press the `Volume Up` button and the `Side` button at the same time, then quickly release both buttons.                                                                                                                                                                                                                   |
-| Screen Recording  | Swipe down from the top-right corner of the screen to open `Control Centre`, then tap the Screen Recording button (a solid dot inside a circle).                                                                                                                                                                          |
-| AirPlay Mirroring | On a macOS workstation, open `System Settings` and search for `AirPlay Receiver`. Turn `AirPlay Receiver` on and set `Allow AirPlay` for `to Everyone`. On the iPhone, open `Control Centre`, tap `Screen Mirroring`, and select the macOS workstation. View and capture the mirrored display from the macOS workstation. |
+<img src="attachments/feature5_ss2.png" width="400" alt="Alt text">
 
-<img src="attachments/feature4_ss1.png" width="400" alt="Alt text">
+*Screenshot shows step1 of adding a third-party keyboard*
 
-*Screenshot shows the correct setting configured for Airplay*
+<img src="attachments/feature5_ss3.png" width="400" alt="Alt text">
 
-<img src="attachments/feature4_ss2.png" width="400" alt="Alt text">
+*Screenshot shows step2 of adding a third-party keyboard*
 
-*Screenshot highlights the screen mirroring icon*
+<img src="attachments/feature5_ss4.png" width="400" alt="Alt text">
 
-<img src="attachments/feature4_ss3.png" width="400" alt="Alt text">
+*Screenshot shows step3 of adding a third-party keyboard*
 
-*Screenshot shows list of targets for screen mirroring*
+<img src="attachments/feature5_ss5.png" width="400" alt="Alt text">
 
-Because the iOS platform provides Screenshot feature, your app is at risk of:
+*Screenshot shows step4 of adding a third-party keyboard*
+
+<img src="attachments/feature5_ss6.png" width="400" alt="Alt text">
+
+*Screenshot shows step5 of adding a third-party keyboard*
+
+3. In the Keyboards list, tap \[Keyboard Name], then enable Allow Full Access. This grants the permissions required for features such as custom themes and autocomplete.
+
+<img src="attachments/feature5_ss7.png" width="400" alt="Alt text">
+
+*Screenshot shows how to access custom keyboard permissions*
+
+<img src="attachments/feature5_ss8.png" width="400" alt="Alt text">
+
+*Screenshot shows enabling full access to custom keyboard*
+
+Because the iOS platform provides Custom Keyboard feature, your app is at risk of:
+
 - [platform-feature-04-risk-01](platform-feature-04-risk-01.md)
+- [platform-feature-04-risk-02_(deprioritise)](platform-feature-04-risk-02_(deprioritise).md)
