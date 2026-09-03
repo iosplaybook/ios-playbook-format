@@ -4,7 +4,7 @@ Your app can prevent the risk of an attacker capturing sensitive information dis
 
 1. Replace standard `TextField` inputs for sensitive fields like `Password` with `SecureField`. This automatically prevents the password from showing up in screen recordings, screen shares, or screenshots.
 
-<img src="attachments/feature4_risk1_control1_ss1.png" width="400" alt="Alt text">
+<img src="attachments/feature3_risk1_control1_ss1.png" width="400" alt="Alt text">
 
 *Screenshot shows implementation of `SecureField` on the `Password` input*
 
