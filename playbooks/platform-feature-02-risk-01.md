@@ -14,7 +14,7 @@ Set up physical iOS device and macOS workstation with the following configuratio
 
 | Configuration | Detail              |
 | ------------- | ------------------- |
-| Prerequisite  | platform-feature-03 |
+| Prerequisite  | platform-feature-02 |
 
 Perform the following steps to demonstrate the risk of an attacker monitoring data between apps:
 
