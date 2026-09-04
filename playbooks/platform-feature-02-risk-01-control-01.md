@@ -9,9 +9,12 @@ Detect HTTPs traffic proxying
 
 Call `CFNetworkCopySystemProxySettings()` to retrieve the iPhone's current network proxy configuration. This allows the app to detect whether a proxy is configured.
 
-<img src="attachments/feature3_risk1_control1_ss1.png" width="400" alt="Alt text">
-
-*Screenshot shows the source code calling `CFNetworkCopySystemProxySettings()` to retrieve the proxy configuration*
+``` swift
+guard let settings = CFNetworkCopySystemProxySettings()?.takeRetainedValue() as? [String: Any] else {
+	return nil
+}
+```
+*Code block shows the source code calling `CFNetworkCopySystemProxySettings()` to retrieve the proxy configuration*
 
 #### 02. Check if HTTPs traffic uses proxy
 
@@ -21,11 +24,15 @@ Inspect the returned settings and check whether `HTTPEnable`, `HTTPSEnable`, or 
 
 If any proxy setting is enabled, trigger an appropriate response. Display a warning to the user, log an alert, or stop the network request. Taking immediate action helps prevent sensitive data from passing through an unverified intermediary that could intercept or modify the traffic.
 
-<img src="attachments/feature3_risk1_control1_ss2.png" width="400" alt="Alt text">
+``` swift
+guard settings[enabledKey] as? Int == 1 else{
+	return nil	
+}
+```
 
-*Screenshot shows source code for proxy configuration check*
+*Code block shows source code for proxy configuration check*
 
-<img src="attachments/feature3_risk1_control1_ss3.png" width="400" alt="Alt text">
+<img src="attachments/feature2_risk1_control1_ss3.png" width="400" alt="Alt text">
 
 *Screenshot shows warning to user that proxy is configured*
 
