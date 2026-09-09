@@ -1,8 +1,12 @@
 ## platform-feature-03-risk-01-control-01
 
-### Description
+### Title
 
 Protect sensitive text fields
+
+### Description
+
+Protect sensitive text fields by using SecureField for sensitive inputs to prevent their contents from being exposed in screenshots, screen recordings, or screen sharing.
 
 ### Demonstration
 #### 01. Protect sensitive text fields

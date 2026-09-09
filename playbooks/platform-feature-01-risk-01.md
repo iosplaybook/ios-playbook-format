@@ -1,12 +1,12 @@
 ## platform-feature-01-risk-01
 
-### Description
+### Title
 
 Analyse the IPA
 
-### Goal
+### Description
 
-As a result, this could lead to _**Discovery**_ - attackers finding out the IPA's plaintext literals.
+Analyse the IPA using static analysis tools to identify sensitive plaintext information, such as hardcoded credentials, API keys, URLs, and configuration values (MITRE ATT&CK: TA0032).
 
 ### Demonstration
 

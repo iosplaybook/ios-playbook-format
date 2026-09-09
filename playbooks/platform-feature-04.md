@@ -1,12 +1,12 @@
 ## platform-feature-04
 
-### Description
+### Title
 
 Install custom keyboard app
 
-### Additional context
+### Description
 
-Custom Keyboard is a feature that allows users to install and use third-party keyboards from an app, select them for text input across supported apps, and grant additional access when Allow Full Access is enabled.
+Install custom keyboard app is a feature that allows users to install and use third-party keyboards from an app, select them for text input across supported apps, and grant additional access when Allow Full Access is enabled.
 
 ### Demonstration
 #### 01. Prepare the environment
