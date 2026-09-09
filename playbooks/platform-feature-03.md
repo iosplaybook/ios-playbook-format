@@ -1,11 +1,12 @@
 ## platform-feature-03
-### Description
+
+### Title
 
 Capture on-screen content
 
-### Additional Context
+### Description
 
-Screen capture and screen mirroring allow the device screen to be captured or displayed on another device through screenshots, screen recording, or AirPlay screen mirroring. This may expose sensitive information shown on the screen, such as usernames, email addresses, or other personal identifiable information.
+Capture on-screen content allow the device screen to be captured or displayed on another device through screenshots, screen recording, or AirPlay screen mirroring. This may expose sensitive information shown on the screen, such as usernames, email addresses, or other personal identifiable information.
 
 ### Demonstration
 #### 01. Prepare the environment

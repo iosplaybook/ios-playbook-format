@@ -1,12 +1,12 @@
 ## platform-feature-02-risk-01
 
-### Description
+### Title
 
 Inspect HTTPs traffic
 
-### Goal
+### Description
 
-As a result, this could lead to ***Collection*** - attackers being able to monitor data between apps.
+Inspect HTTPS traffic by routing app network communications through a trusted interception proxy to monitor data transmitted between the app and its endpoints (MITRE ATT&CK: TA0035).
 
 ### Demonstration
 #### 01. Prepare the environment

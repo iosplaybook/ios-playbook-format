@@ -1,8 +1,12 @@
 ## platform-feature-04-risk-01-control-01
 
-### Description
+### Title
 
 Protect sensitive text fields
+
+### Description
+
+Protect sensitive text fields by using SecureField for sensitive inputs to prevent third-party custom keyboards from capturing information entered by the user.
 
 ### Demonstration
 #### 01. Protect sensitive text fields

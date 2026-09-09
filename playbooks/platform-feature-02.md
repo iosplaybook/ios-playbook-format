@@ -1,12 +1,12 @@
 ## platform-feature-02
 
-### Description
+### Title
 
 Set up HTTPs proxy
 
-### Additional Context
+### Description
 
-HTTP proxy configuration is a feature that allows network traffic from a physical iOS device to be routed through a tester-controlled proxy server, enabling authorised security testers to inspect HTTP requests and responses, observe backend endpoints, validate transport security behaviour, and identify sensitive data exposure during dynamic analysis. 
+Set up HTTPs proxy is a feature that allows network traffic from a physical iOS device to be routed through a tester-controlled proxy server, enabling authorised security testers to inspect HTTP requests and responses, observe backend endpoints, validate transport security behaviour, and identify sensitive data exposure during dynamic analysis. 
 
 ### Demonstration
 #### 01. Prepare the environment
