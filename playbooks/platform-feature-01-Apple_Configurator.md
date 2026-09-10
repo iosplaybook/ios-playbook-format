@@ -1,12 +1,12 @@
 ## platform-feature-01
 
-### Description
+### Title
 
 Retrieve an IPA
 
-### Additional context
+### Description
 
-IPA acquisition is a feature that allows an IPA file to be obtained using Apple Configurator on macOS, enabling security testers to inspect the app's structure, configuration, permissions, and entitlements.
+Retrieve an IPA is a feature that allows an IPA file to be obtained using Apple Configurator on macOS, enabling security testers to inspect the app's structure, configuration, permissions, and entitlements.
 
 ### Demonstration
 #### 01. Prepare the environment

@@ -1,8 +1,12 @@
 ## platform-feature-01-risk-01-control-01
 
-### Description
+### Title
 
 Obfuscate plaintext literals
+
+### Description
+
+Obfuscate plaintext literals during the build process by replacing sensitive values with generated obfuscated accessors to prevent them from being easily recovered through static analysis.
 
 ### Demonstration
 #### 01. Set up plaintext literals obfuscation

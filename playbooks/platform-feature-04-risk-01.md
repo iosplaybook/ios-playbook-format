@@ -1,12 +1,12 @@
 ## platform-feature-04-risk-01
 
-### Description
+### Title
 
 Capture text input
 
-### Goal
+### Description
 
-As a result, this could lead to **_Collection_** - attackers capturing sensitive information entered by the user.
+Capture text input by using a third-party custom keyboard to record and retain sensitive information entered into the app (MITRE ATT&CK: TA0035).
 
 ### Demonstration
 #### 01. Prepare the environment

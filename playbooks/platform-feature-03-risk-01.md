@@ -1,12 +1,12 @@
 ## platform-feature-03-risk-01
 
-### Description
+### Title
 
 Capture on-screen content
 
-### Goal
+### Description
 
-As a result, this could lead to ***Collection*** - attackers capturing sensitive information displayed on screen.
+Capture on-screen content by recording the app display during an authorised screen recording session to collect sensitive information visible within the app (MITRE ATT&CK: TA0035).
 
 ### Demonstration
 #### 01. Prepare the environment
