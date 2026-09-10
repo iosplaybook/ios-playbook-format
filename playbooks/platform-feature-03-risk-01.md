@@ -6,7 +6,7 @@ Capture on-screen content
 
 ### Description
 
-Capture on-screen content by recording the app display during an authorised screen recording session to collect sensitive information visible within the app (MITRE ATT&CK: TA0035).
+Capture on-screen content by recording the app display during an authorised screen recording session to collect sensitive information visible within the app (MITRE ATT&CK: ***Collection*** - TA0035).
 
 ### Demonstration
 #### 01. Prepare the environment

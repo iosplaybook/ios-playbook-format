@@ -6,7 +6,7 @@ Inspect HTTPs traffic
 
 ### Description
 
-Inspect HTTPS traffic by routing app network communications through a trusted interception proxy to monitor data transmitted between the app and its endpoints (MITRE ATT&CK: TA0035).
+Inspect HTTPS traffic by routing app network communications through a trusted interception proxy to monitor data transmitted between the app and its endpoints (MITRE ATT&CK: ***Collection*** - TA0035).
 
 ### Demonstration
 #### 01. Prepare the environment

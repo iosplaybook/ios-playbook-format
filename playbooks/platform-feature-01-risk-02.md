@@ -6,8 +6,7 @@ Repackage the IPA
 
 ### Goal
 
-As a result, this could lead to **_Persistence_** - attackers making a permanent modification to IPAs.
-
+Attackers could make permanent modifications to IPAs to avoid being detected. (MITRE ATT&CK: ***Defence Evasion*** - TA0030).
 ### Demonstration
 
 #### 01. Prepare the environment
@@ -15,9 +14,8 @@ As a result, this could lead to **_Persistence_** - attackers making a permanent
 Set up the required environment with:
 
 - A physical iPhone 15 running iOS 17.6
-- A physical macOS workstation with Apple Configurator and Terminal
+- A macOS workstation with Xcode, Apple Configurator, Terminal, and the `insert_dylib` utility
 - A target app installed on the iPhone
-- Frida Gadget, saved as `FridaGadget.dylib`
 - A valid Apple Development signing identity and compatible provisioning profile
 
 #### 02. Provide access to app
@@ -58,16 +56,27 @@ _Screenshot shows the target app IPA in the Apple Configurator cache directory._
 
 #### 05. Add Frida Gadget to the app bundle
 
-An IPA is a ZIP archive containing `Payload/TargetApp.app/`. The `.app` bundle contains the app binary, `Info.plist`, embedded provisioning profile, Swift libraries, and other resources.
-
-Unpack the IPA so the app bundle can be modified. Add [Frida Gadget](https://github.com/frida/frida/releases/download/17.9.10/frida-gadget-17.9.10-ios-universal.dylib.gz) to the app bundle under the `Frameworks` folder.
+Use Apple's unzip utility to extract the newly created IPA into a working directory; patched-ipa and access the app bundle.
 
 ``` shell
 unzip <TARGET_APP>.ipa -d patched-ipa
 
+```
+
+#### 06. Download Frida Gadget   
+
+Download the [Frida Gadget](https://github.com/frida/frida/releases/download/17.9.10/frida-gadget-17.9.10-ios-universal.dylib.gz) build for iOS from the official Frida release page. The downloaded file is distributed as a compressed `.dylib.gz` file, so decompress it and rename to `FridaGadget.dylib` with the following commands.
+
+``` shell
 gunzip frida-gadget-17.9.10-ios-universal.dylib.gz
 mv frida-gadget-17.9.10-ios-universal.dylib FridaGadget.dylib
+```
 
+#### 07. Put Frida Gadget in the app
+
+Create a `Frameworks` directory in the app bundle, then copy the Frida Gadget library and configuration file into it.
+
+``` shell
 mkdir -p patched-ipa/Payload/TargetApp.app/Frameworks
 
 cp FridaGadget.dylib patched-ipa/Payload/TargetApp.app/Frameworks/
@@ -76,9 +85,7 @@ cp FridaGadget.config patched-ipa/Payload/TargetApp.app/Frameworks/
 
 *Code block shows commands used to add Frida Gadget to the target IPA.*
 
-#### 06. Patch the application binary
-
-Patch the app binary so iOS loads `FridaGadget.dylib` when the app starts.
+Modify the app's binary using `insert_dylib` such that it loads `FridaGadget.dylib` when the app starts.
 
 ``` shell
 insert_dylib --strip-codesig --inplace "@executable_path/Frameworks/FridaGadget.dylib" "patched-ipa/Payload/TargetApp.app/TargetApp"
@@ -86,23 +93,29 @@ insert_dylib --strip-codesig --inplace "@executable_path/Frameworks/FridaGadget.
 
 *Code block shows command used to patch binary in IPA.*
 
-#### 07. Re-sign and install the modified application
+#### 08. Repackage the app
 
-Re-sign the modified application using a valid Apple Development signing identity and compatible provisioning profile. Sign the added Frida Gadget library before signing the application bundle. Repackage the signed application into an IPA if required, then install the signed `.app` onto the device.
+Re-sign all executable code in the modified app bundle, including `FridaGadget.dylib`, using the macOS `codesign` utility with a valid Apple Development signing identity and compatible entitlements.
 
 ``` shell
+mkdir -p dist
+cd patched-ipa
+zip -qry ../dist/TargetApp-frida.ipa Payload
+cd ..
+
 codesign --force --sign "<SIGNING_IDENTITY>" \
   patched-ipa/Payload/TargetApp.app/Frameworks/FridaGadget.dylib
 
 codesign --force --sign "<SIGNING_IDENTITY>" \
   --entitlements entitlements.plist \
   patched-ipa/Payload/TargetApp.app
+```
 
-mkdir -p dist
-cd patched-ipa
-zip -qry ../dist/TargetApp-frida.ipa Payload
-cd ..
+#### 09. Install the app 
 
+Use Apple's `devicectl` utility to note the `UDID` of the connected iPhone and install the signed `.app` bundle onto it.
+
+``` shell
 xcrun devicectl device install app \
   --device <DEVICE_UDID> \
   patched-ipa/Payload/TargetApp.app
@@ -110,9 +123,9 @@ xcrun devicectl device install app \
 
 *Code block shows commands used to resign and reinstall repackaged IPA.*
 
-#### 08. Attach Frida to the modified application
+#### 10. Connect to Frida
 
-Launch the modified application under a debugger so runtime instrumentation using Frida `Interceptor` is permitted on the non-jailbroken device. After the application starts and Frida Gadget is loaded, attach Frida from the Mac and load the hook script. This allows attackers to manipulate application functions.
+Launch the modified app on the connected iPhone, then connect to the embedded Frida Gadget from the Mac to verify that the app was successfully repackaged with Frida.
 
 ``` shell
 frida -U -n Gadget -l <FRIDA_SCRIPT>
@@ -123,6 +136,7 @@ frida -U -n Gadget -l <FRIDA_SCRIPT>
 Feature-01-Risk-02 control measures:
 
 - [platform-feature-01-risk-02-control-01](app://-/platform-feature-01-risk-02-control-01.md)
+- [platform-feature-01-risk-02-control-02](app://-/platform-feature-01-risk-02-control-02.md)
 
 References:
 

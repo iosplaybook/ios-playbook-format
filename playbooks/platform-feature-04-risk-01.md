@@ -6,7 +6,7 @@ Capture text input
 
 ### Description
 
-Capture text input by using a third-party custom keyboard to record and retain sensitive information entered into the app (MITRE ATT&CK: TA0035).
+Capture text input by using a third-party custom keyboard to record and retain sensitive information entered into the app (MITRE ATT&CK: ***Collection*** - TA0035).
 
 ### Demonstration
 #### 01. Prepare the environment

@@ -29,8 +29,8 @@ Inspect the returned settings and check whether `HTTPEnable`, `HTTPSEnable`, or 
 If any proxy setting is enabled, trigger an appropriate response. Display a warning to the user, log an alert, or stop the network request. Taking immediate action helps prevent sensitive data from passing through an unverified intermediary that could intercept or modify the traffic.
 
 ``` swift
-guard settings[enabledKey] as? Int == 1 else{
-	return nil	
+guard isEnabled(settings[enabledKey]) else {
+	return nil
 }
 ```
 
