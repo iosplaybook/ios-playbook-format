@@ -1,8 +1,12 @@
 ## platform-feature-02-risk-01-control-01
 
-### Description
+### Title
 
 Detect HTTPs traffic proxying
+
+### Description
+
+Detect HTTPS traffic proxying by checking the iPhone's network proxy configuration to prevent sensitive app traffic from being intercepted or modified through a configured proxy.
 
 ### Demonstration
 #### 01. Get iPhone proxy settings
