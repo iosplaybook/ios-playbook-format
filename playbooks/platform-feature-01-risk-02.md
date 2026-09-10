@@ -6,8 +6,7 @@ Repackage the IPA
 
 ### Goal
 
-As a result, this could lead to **_Persistence_** - attackers making a permanent modification to IPAs.
-
+Attackers could make permanent modifications to IPAs to avoid being detected. (MITRE ATT&CK: ***Defence Evasion*** - TA0030).
 ### Demonstration
 
 #### 01. Prepare the environment
